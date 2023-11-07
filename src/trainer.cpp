@@ -46,6 +46,7 @@ int main(){
     auto pure_board = all_boards_to_str(test);
 
     QLearningAgent Qlearn(36);
+    std::cout<<"Training\n";
 
     for(int games = 1; games <= 1000000 ; ++games){
         std::cout<<"Game : "<<games<<"\n";
@@ -101,7 +102,7 @@ int main(){
                 move = moves[0];
             }
             else{
-                double q_val = INT_MIN;
+                double q_val = DBL_MIN;
                 for(auto &it : moveset){
                     auto eval = Qlearn.state_evaluation(b,it) ;
                     // auto board_now = all_boards_to_str(b);

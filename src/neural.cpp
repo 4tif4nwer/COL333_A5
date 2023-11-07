@@ -178,43 +178,41 @@ int32_t board_evaluate(Board& b){
     return reward;
 }
 
-
 class NeuralNetwork {
 public:
-    NeuralNetwork(int inputSize, int hiddenSize, int outputSize,bool pretrained = false)
-        : inputSize(inputSize), hiddenSize(hiddenSize), outputSize(outputSize) {
-        // Initialize weights and biases for the hidden and output layers
-        hiddenWeights.resize(inputSize, std::vector<double>(hiddenSize));
-        outputWeights.resize(hiddenSize, std::vector<double>(outputSize));
-        hiddenBiases.resize(hiddenSize);
-        outputBiases.resize(outputSize);
+    NeuralNetwork(int inputSize, int outputSize, int numHiddenLayers, int hiddenLayerSize, bool pretrained = false)
+        : inputSize(inputSize), outputSize(outputSize) {
+        // Initialize layers
+        layers.push_back(inputSize);
+        for (int i = 0; i < numHiddenLayers; ++i) {
+            layers.push_back(hiddenLayerSize);
+        }
+        layers.push_back(outputSize);
 
-        // Initialize weights and biases with random values
-        initializeRandomWeightsAndBiases(pretrained);
+        // Initialize weights and biases for all layers
+        initializeWeightsAndBiases(pretrained);
     }
 
     // Forward pass
     std::vector<double> forward(const std::vector<double>& input) {
-        // Input to hidden layer
-        assert(input.size() == inputSize);
-        std::vector<double> hiddenOutput(hiddenSize);
-        for (int i = 0; i < hiddenSize; ++i) {
-            hiddenOutput[i] = 0;
-            for (int j = 0; j < inputSize; ++j) {
-                hiddenOutput[i] += input[j] * hiddenWeights[j][i];
-            }
-            hiddenOutput[i] += hiddenBiases[i];
-            hiddenOutput[i] = sigmoid(hiddenOutput[i]);
-        }
+        std::vector<double> output = input;
 
-        // Hidden to output layer
-        std::vector<double> output(outputSize);
-        for (int i = 0; i < outputSize; ++i) {
-            output[i] = 0;
-            for (int j = 0; j < hiddenSize; ++j) {
-                output[i] += hiddenOutput[j] * outputWeights[j][i];
+        for (int i = 0; i < int(layers.size()) - 1; ++i) {
+            int inputSize = layers[i];
+            int outputSize = layers[i + 1];
+
+            // Compute the output of the current layer
+            std::vector<double> layerOutput(outputSize, 0.0);
+            for (int j = 0; j < outputSize; ++j) {
+                for (int k = 0; k < inputSize; ++k) {
+                    layerOutput[j] += output[k] * weights[i][k][j];
+                }
+                layerOutput[j] += biases[i][j];
+                if(i != (int(layers.size()) - 2))
+                    layerOutput[j] = sigmoid(layerOutput[j]);
             }
-            output[i] += outputBiases[i];
+
+            output = layerOutput;
         }
 
         return output;
@@ -222,185 +220,201 @@ public:
 
     // Training using backpropagation
     void train(const std::vector<std::vector<double>>& inputs, const std::vector<std::vector<double>>& targets, double learningRate, int epochs) {
-        // for(auto &it : inputs[0]){
-        //     std::cout<<it<<" ";
-        // }
-        // std::cout<<targets[0][0]<<std::endl;
         for (int epoch = 0; epoch < epochs; ++epoch) {
             for (size_t i = 0; i < inputs.size(); ++i) {
-                assert(inputs[i].size() == inputSize);
+                const std::vector<double>& input = inputs[i];
+                const std::vector<double>& target = targets[i];
+
                 // Forward pass
-                std::vector<double> input = inputs[i];
-                std::vector<double> target = targets[i];
+                std::vector<std::vector<double>> layerOutputs;
+                layerOutputs.push_back(input);
+                std::vector<double> output = input;
 
-                // Compute hidden layer output
-                std::vector<double> hiddenOutput(hiddenSize);
-                for (int j = 0; j < hiddenSize; ++j) {
-                    hiddenOutput[j] = 0;
-                    for (int k = 0; k < inputSize; ++k) {
-                        hiddenOutput[j] += input[k] * hiddenWeights[k][j];
+                for (int j = 0; j < int(layers.size()) - 1; ++j) {
+                    int inputSize = layers[j];
+                    int outputSize = layers[j + 1];
+
+                    // Compute the output of the current layer
+                    std::vector<double> layerOutput(outputSize, 0.0);
+                    for (int k = 0; k < outputSize; ++k) {
+                        for (int l = 0; l < inputSize; ++l) {
+                            layerOutput[k] += output[l] * weights[j][l][k];
+                        }
+                        layerOutput[k] += biases[j][k];
+                        if(j != (int(layers.size()) - 2))
+                            layerOutput[k] = sigmoid(layerOutput[k]);
                     }
-                    hiddenOutput[j] += hiddenBiases[j];
-                    hiddenOutput[j] = sigmoid(hiddenOutput[j]);
-                }
 
-                // Compute output layer output
-                std::vector<double> output(outputSize);
-                for (int j = 0; j < outputSize; ++j) {
-                    output[j] = 0;
-                    for (int k = 0; k < hiddenSize; ++k) {
-                        output[j] += hiddenOutput[k] * outputWeights[k][j];
-                    }
-                    output[j] += outputBiases[j];
-                }
-
-                // Compute output layer error
-                std::vector<double> outputError(outputSize);
-                for (int j = 0; j < outputSize; ++j) {
-                    outputError[j] = target[j] - output[j];
+                    output = layerOutput;
+                    layerOutputs.push_back(output);
                 }
 
                 // Backpropagation
+                std::vector<std::vector<double>> errors(int(layers.size()) - 1);
+
+                // Compute the error of the output layer
+                std::vector<double> outputErrors(outputSize, 0.0);
                 for (int j = 0; j < outputSize; ++j) {
-                    for (int k = 0; k < hiddenSize; ++k) {
-                        outputWeights[k][j] += learningRate * outputError[j] * hiddenOutput[k];
-                    }
-                    outputBiases[j] += learningRate * outputError[j];
+                    outputErrors[j] = target[j] - output[j];
                 }
+                errors[int(layers.size()) - 2] = outputErrors;
 
-                // Update hidden layer error
-                std::vector<double> hiddenError(hiddenSize);
-                for (int j = 0; j < hiddenSize; ++j) {
-                    hiddenError[j] = 0;
-                    for (int k = 0; k < outputSize; ++k) {
-                        hiddenError[j] += outputError[k] * outputWeights[j][k];
-                    }
-                }
+                // Compute the error of the hidden layers
+                for (int j = int(layers.size()) - 3; j >= 0; --j) {
+                    int inputSize = layers[j + 1];
+                    int outputSize = layers[j + 2];
 
-                // Update hidden layer weights and biases
-                for (int j = 0; j < hiddenSize; ++j) {
+                    std::vector<double> error(inputSize, 0.0);
                     for (int k = 0; k < inputSize; ++k) {
-                        hiddenWeights[k][j] += learningRate * hiddenError[j] * input[k];
+                        for (int l = 0; l < outputSize; ++l) {
+                            error[k] += errors[j + 1][l] * weights[j + 1][k][l] * layerOutputs[j + 1][l] * (1 - layerOutputs[j + 1][l]);
+                        }
                     }
-                    hiddenBiases[j] += learningRate * hiddenError[j];
+
+                    errors[j] = error;
                 }
+
+                // Update weights and biases
+                for (int j = 0; j < int(layers.size()) - 1; ++j) {
+                    int inputSize = layers[j];
+                    int outputSize = layers[j + 1];
+
+                    for (int k = 0; k < inputSize; ++k) {
+                        for (int l = 0; l < outputSize; ++l) {
+                            weights[j][k][l] += learningRate * errors[j][l] * layerOutputs[j][k];
+                        }
+                    }
+
+                    for (int k = 0; k < outputSize; ++k) {
+                        biases[j][k] += learningRate * errors[j][k];
+                    }
+                }
+
             }
         }
+        // Write to text file
         std::ofstream output_file("src/weights.txt");
 
-        // std::ostream_iterator<std::string> output_iterator(output_file, "\n");
-        for(auto &it : hiddenWeights){
+        output_file<< std::fixed << std::setprecision(20);
+
+        for(auto &it : weights){
             for(auto &it2 : it){
-                output_file<< std::fixed << std::setprecision(10)<<it2<<"\n";
+                for(auto &it3 : it2){
+                    output_file<<it3<<"\n";
+                }
             }
         }
-        for(auto &it : hiddenBiases){
-            output_file<<it<<"\n";
-        }
-        for(auto &it : outputWeights){
+        for(auto &it : biases){
             for(auto &it2 : it){
                 output_file<<it2<<"\n";
             }
         }
-        for(auto &it : outputBiases){
-            output_file<<it<<"\n";
-        }
 
         output_file.close();
-                
     }
 
 private:
     int inputSize;
-    int hiddenSize;
     int outputSize;
-    std::vector<std::vector<double>> hiddenWeights;
-    std::vector<std::vector<double>> outputWeights;
-    std::vector<double> hiddenBiases;
-    std::vector<double> outputBiases;
+    std::vector<int> layers; // Number of neurons in each layer
+    std::vector<std::vector<std::vector<double>>> weights; // Weights for each connection
+    std::vector<std::vector<double>> biases; // Biases for each neuron
 
     // Sigmoid activation function
     double sigmoid(double x) {
         return 1.0 / (1.0 + exp(-x));
     }
 
-    // Initialize weights and biases with random values
-    void initializeRandomWeightsAndBiases(bool pretrained = false) {
+    // Initialize weights and biases for all layers
+    void initializeWeightsAndBiases(bool pretrained = false) {
+
         if(pretrained){
             std::ifstream input_file("src/weights.txt");
             std::string line;
-            int i = 0;
-            while(std::getline(input_file, line)){
-                if(i < inputSize * hiddenSize){
-                    hiddenWeights[i/hiddenSize][i%hiddenSize] = std::stod(line);
+            weights.resize(int(layers.size()) - 1);
+            biases.resize(int(layers.size()) - 1);
+
+            for (int i = 0; i < int(layers.size()) - 1; ++i) {
+                int inputSize = layers[i];
+                int outputSize = layers[i + 1];
+
+                weights[i].resize(inputSize, std::vector<double>(outputSize));
+                biases[i].resize(outputSize);
+            }    
+
+            for(auto &it : weights){
+                for(auto &it2 : it){
+                    for(auto &it3 : it2){
+                        std::getline(input_file,line);
+                        it3 = std::stod(line);
+                    }
                 }
-                else if(i < inputSize * hiddenSize + hiddenSize){
-                    hiddenBiases[i - inputSize * hiddenSize] = std::stod(line);
+            }
+            for(auto &it : biases){
+                for(auto &it2 : it){
+                    std::getline(input_file,line);
+                    it2 = std::stod(line);
                 }
-                else if(i < inputSize * hiddenSize + hiddenSize + hiddenSize * outputSize){
-                    outputWeights[(i - inputSize * hiddenSize - hiddenSize)/outputSize][(i - inputSize * hiddenSize - hiddenSize)%outputSize] = std::stod(line);
-                }
-                else{
-                    outputBiases[i - inputSize * hiddenSize - hiddenSize - hiddenSize * outputSize] = std::stod(line);
-                }
-                i++;
             }
             input_file.close();
             return;
+            
         }
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<double> dist(-1.0, 1.0);
 
-        for (int i = 0; i < inputSize; ++i) {
-            for (int j = 0; j < hiddenSize; ++j) {
-                hiddenWeights[i][j] = dist(gen);
-            }
-        }
+        weights.resize(int(layers.size()) - 1);
+        biases.resize(int(layers.size()) - 1);
 
-        for (int i = 0; i < hiddenSize; ++i) {
+        for (int i = 0; i < int(layers.size()) - 1; ++i) {
+            int inputSize = layers[i];
+            int outputSize = layers[i + 1];
+
+            weights[i].resize(inputSize, std::vector<double>(outputSize));
+            biases[i].resize(outputSize);
+
+            for (int j = 0; j < inputSize; ++j) {
+                for (int k = 0; k < outputSize; ++k) {
+                    weights[i][j][k] = dist(gen);
+                }
+            }
+
             for (int j = 0; j < outputSize; ++j) {
-                outputWeights[i][j] = dist(gen);
+                biases[i][j] = dist(gen);
             }
         }
 
-        for (int i = 0; i < hiddenSize; ++i) {
-            hiddenBiases[i] = dist(gen);
-        }
-
-        for (int i = 0; i < outputSize; ++i) {
-            outputBiases[i] = dist(gen);
-        }
         std::ofstream output_file("src/weights.txt");
 
-        // std::ostream_iterator<std::string> output_iterator(output_file, "\n");
-        for(auto &it : hiddenWeights){
+        output_file<< std::fixed << std::setprecision(20);
+
+        for(auto &it : weights){
             for(auto &it2 : it){
-                output_file<< std::fixed << std::setprecision(8)<<it2<<" ";
+                for(auto &it3 : it2){
+                    output_file<<it3<<"\n";
+                }
             }
         }
-        for(auto &it : hiddenBiases){
-            output_file<<it<<" ";
-        }
-        for(auto &it : outputWeights){
+        for(auto &it : biases){
             for(auto &it2 : it){
-                output_file<<it2<<" ";
+                output_file<<it2<<"\n";
             }
-        }
-        for(auto &it : outputBiases){
-            output_file<<it<<" ";
         }
 
         output_file.close();
+
+        return;
     }
 };
 
+
 class QLearningAgent {
 public:
-    QLearningAgent(int inputSize, int hiddenSize = 100, int outputSize = 1)
-        : nn(inputSize, hiddenSize, outputSize,true) {
-            learningRate = 0.01;
-            discountFactor = 0.7;
+    QLearningAgent(int inputSize,int numHiddenLayers = 1, int hiddenSize = 36, int outputSize = 1)
+        : nn(inputSize, outputSize,numHiddenLayers, hiddenSize,true) {
+            learningRate = 0.1;
+            discountFactor = 0.8;
             trainstep = 1;
 
     }
@@ -509,7 +523,7 @@ public:
         auto next_score = board_evaluate(state);
 
         double reward = double(next_score - curr_score);
-        double next_q_val = INT32_MIN;
+        double next_q_val = DBL_MIN;
         if(isdraw){
             reward = 0;
             next_q_val = 0;
