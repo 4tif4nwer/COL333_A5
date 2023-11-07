@@ -257,6 +257,7 @@ public:
                 for (int j = 0; j < outputSize; ++j) {
                     outputErrors[j] = target[j] - output[j];
                 }
+                std::cout<<outputErrors[0]<<"\n";
                 errors[int(layers.size()) - 2] = outputErrors;
 
                 // Compute the error of the hidden layers
@@ -295,7 +296,7 @@ public:
         // Write to text file
         std::ofstream output_file("src/weights.txt");
 
-        output_file<< std::fixed << std::setprecision(20);
+        output_file<< std::hexfloat;
 
         for(auto &it : weights){
             for(auto &it2 : it){
@@ -387,7 +388,7 @@ private:
 
         std::ofstream output_file("src/weights.txt");
 
-        output_file<< std::fixed << std::setprecision(20);
+        output_file<< std::hexfloat;
 
         for(auto &it : weights){
             for(auto &it2 : it){
@@ -537,7 +538,7 @@ public:
                 next_q_val = 0;
 
             for(auto &it : moveset){
-                next_q_val = std::max(next_q_val,-state_evaluation(state,it));
+                next_q_val = std::max(next_q_val,state_evaluation(state,it));
             }
             state.flip_player_();
 
@@ -629,7 +630,7 @@ public:
             };
 
         }
-        nn.train(std::vector<std::vector<double>>({input}),std::vector<std::vector<double>>({{reward + discountFactor * next_q_val}}),learningRate/trainstep,1);
+        nn.train(std::vector<std::vector<double>>({input}),std::vector<std::vector<double>>({{reward/10000 - discountFactor * next_q_val}}),learningRate/trainstep,1);
         trainstep += 1;
         state.data.last_killed_piece = last_killed;
         state.data.last_killed_piece_idx = last_killed_idx;
