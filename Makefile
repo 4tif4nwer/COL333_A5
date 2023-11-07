@@ -9,6 +9,10 @@ rollerball:
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(INCLUDES) $(SRC) -lpthread -o bin/rollerball
 
+trainer:
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(INCLUDES) src/board.cpp src/butils.cpp src/bdata.cpp src/trainer.cpp -lpthread -o bin/sim
+
 package:
 	mkdir -p build 
 	mkdir -p build/rollerball
