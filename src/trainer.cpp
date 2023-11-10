@@ -45,7 +45,7 @@ int main(){
 
     auto pure_board = all_boards_to_str(test);
 
-    QLearningAgent Qlearn(36);
+    QLearningAgent Qlearn(true);
     std::cout<<"Training\n";
 
     for(int games = 1; games <= 1000000 ; ++games){
@@ -90,7 +90,7 @@ int main(){
             // sample an integer from 1 to 100
             int r = rand() % 100;
             auto move = *moveset.begin();
-            if(r<50){
+            if(r<30){
                 std::vector<U16> moves;
                 std::sample(
                     moveset.begin(),
@@ -116,9 +116,9 @@ int main(){
 
             b.do_move_without_flip_(move);
             bool isdraw = false;
-            if(board_count[board_encode(b)] == 2){
-                isdraw = true;
-            }
+            // if(board_count[board_encode(b)] == 2){
+            //     isdraw = true;
+            // }
             b.flip_player_();
             if(b.get_legal_moves().size() == 0 && !b.in_check()){
                 isdraw = true;

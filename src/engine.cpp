@@ -20,7 +20,7 @@ void Engine::find_best_move(const Board& b) {
     }
     else {
         std::vector<U16> moves;
-        QLearningAgent Qlearn(36);
+        // QLearningAgent Qlearn(true);
         std::cout << show_moves(&b.data, moveset) << std::endl;
         for (auto m : moveset) {
             std::cout << move_to_str(m) << " ";
@@ -34,21 +34,21 @@ void Engine::find_best_move(const Board& b) {
             std::mt19937{std::random_device{}()}
         );
         auto move = moves[0];
-        Board searchboard = Board(b.data);
-        double q_val = INT_MIN;
-        for(auto &it : moveset){
-            auto eval = Qlearn.state_evaluation(searchboard,it) ;
-            // auto board_now = all_boards_to_str(b);
-            // assert(board_now == initial_board);
-            if(q_val < eval){
-                move = it;
-                q_val = eval;
-            }
-        }
+        // Board searchboard = Board(b.data);
+        // double q_val = INT_MIN;
+        // for(auto &it : moveset){
+        //     auto eval = Qlearn.state_evaluation(searchboard,it) ;
+        //     // auto board_now = all_boards_to_str(b);
+        //     // assert(board_now == initial_board);
+        //     if(q_val < eval){
+        //         move = it;
+        //         q_val = eval;
+        //     }
+        // }
         this->best_move = move;
         // std::cout<<"here\n";
     }
 
     // just for debugging, to slow down the moves
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }

@@ -160,340 +160,480 @@ int32_t board_evaluate(Board& b){
     return reward;
 }
 
-class NeuralNetwork {
-public:
-    NeuralNetwork(int inputSize, int outputSize, int numHiddenLayers, int hiddenLayerSize, bool pretrained = false)
-        : inputSize(inputSize), outputSize(outputSize) {
-        // Initialize layers
-        layers.push_back(inputSize);
-        for (int i = 0; i < numHiddenLayers; ++i) {
-            layers.push_back(hiddenLayerSize);
-        }
-        layers.push_back(outputSize);
+class function_approximator{
 
-        // Initialize weights and biases for all layers
-        initializeWeightsAndBiases(pretrained);
-    }
+    public:
 
-    // Forward pass
-    std::vector<double> forward(const std::vector<double>& input) {
-        std::vector<double> output = input;
-
-        for (int i = 0; i < int(layers.size()) - 1; ++i) {
-            int inputSize = layers[i];
-            int outputSize = layers[i + 1];
-
-            // Compute the output of the current layer
-            std::vector<double> layerOutput(outputSize, 0.0);
-            for (int j = 0; j < outputSize; ++j) {
-                for (int k = 0; k < inputSize; ++k) {
-                    layerOutput[j] += output[k] * weights[i][k][j];
-                }
-                layerOutput[j] += biases[i][j];
-                if(i != (int(layers.size()) - 2))
-                    layerOutput[j] = sigmoid(layerOutput[j]);
-            }
-
-            output = layerOutput;
-        }
-
-        return output;
-    }
-
-    // Training using backpropagation
-    void train(const std::vector<std::vector<double>>& inputs, const std::vector<std::vector<double>>& targets, double learningRate, int epochs) {
-        for (int epoch = 0; epoch < epochs; ++epoch) {
-            for (size_t i = 0; i < inputs.size(); ++i) {
-                const std::vector<double>& input = inputs[i];
-                const std::vector<double>& target = targets[i];
-
-                // Forward pass
-                std::vector<std::vector<double>> layerOutputs;
-                layerOutputs.push_back(input);
-                std::vector<double> output = input;
-
-                for (int j = 0; j < int(layers.size()) - 1; ++j) {
-                    int inputSize = layers[j];
-                    int outputSize = layers[j + 1];
-
-                    // Compute the output of the current layer
-                    std::vector<double> layerOutput(outputSize, 0.0);
-                    for (int k = 0; k < outputSize; ++k) {
-                        for (int l = 0; l < inputSize; ++l) {
-                            layerOutput[k] += output[l] * weights[j][l][k];
-                        }
-                        layerOutput[k] += biases[j][k];
-                        if(j != (int(layers.size()) - 2))
-                            layerOutput[k] = sigmoid(layerOutput[k]);
-                    }
-
-                    output = layerOutput;
-                    layerOutputs.push_back(output);
-                }
-
-                // Backpropagation
-                std::vector<std::vector<double>> errors(int(layers.size()) - 1);
-
-                // Compute the error of the output layer
-                std::vector<double> outputErrors(outputSize, 0.0);
-                for (int j = 0; j < outputSize; ++j) {
-                    outputErrors[j] = target[j] - output[j];
-                }
-                std::cout<<outputErrors[0]<<"\n";
-                errors[int(layers.size()) - 2] = outputErrors;
-
-                // Compute the error of the hidden layers
-                for (int j = int(layers.size()) - 3; j >= 0; --j) {
-                    int inputSize = layers[j + 1];
-                    int outputSize = layers[j + 2];
-
-                    std::vector<double> error(inputSize, 0.0);
-                    for (int k = 0; k < inputSize; ++k) {
-                        for (int l = 0; l < outputSize; ++l) {
-                            error[k] += errors[j + 1][l] * weights[j + 1][k][l] * layerOutputs[j + 1][l] * (1 - layerOutputs[j + 1][l]);
-                        }
-                    }
-
-                    errors[j] = error;
-                }
-
-                // Update weights and biases
-                for (int j = 0; j < int(layers.size()) - 1; ++j) {
-                    int inputSize = layers[j];
-                    int outputSize = layers[j + 1];
-
-                    for (int k = 0; k < inputSize; ++k) {
-                        for (int l = 0; l < outputSize; ++l) {
-                            weights[j][k][l] += learningRate * errors[j][l] * layerOutputs[j][k];
-                        }
-                    }
-
-                    for (int k = 0; k < outputSize; ++k) {
-                        biases[j][k] += learningRate * errors[j][k];
-                    }
-                }
-
-            }
-        }
-        // Write to text file
-        std::ofstream output_file("src/weights.txt");
-
-        output_file<< std::hexfloat;
-
-        for(auto &it : weights){
-            for(auto &it2 : it){
-                for(auto &it3 : it2){
-                    output_file<<it3<<"\n";
-                }
-            }
-        }
-        for(auto &it : biases){
-            for(auto &it2 : it){
-                output_file<<it2<<"\n";
-            }
-        }
-
-        output_file.close();
-    }
-
-private:
-    int inputSize;
-    int outputSize;
-    std::vector<int> layers; // Number of neurons in each layer
-    std::vector<std::vector<std::vector<double>>> weights; // Weights for each connection
-    std::vector<std::vector<double>> biases; // Biases for each neuron
-
-    // Sigmoid activation function
-    double sigmoid(double x) {
-        return 1.0 / (1.0 + exp(-x));
-    }
-
-    // Initialize weights and biases for all layers
-    void initializeWeightsAndBiases(bool pretrained = false) {
-
-        if(pretrained){
-            std::ifstream input_file("src/weights.txt");
-            std::string line;
-            weights.resize(int(layers.size()) - 1);
-            biases.resize(int(layers.size()) - 1);
-
-            for (int i = 0; i < int(layers.size()) - 1; ++i) {
-                int inputSize = layers[i];
-                int outputSize = layers[i + 1];
-
-                weights[i].resize(inputSize, std::vector<double>(outputSize));
-                biases[i].resize(outputSize);
-            }    
-
-            for(auto &it : weights){
-                for(auto &it2 : it){
-                    for(auto &it3 : it2){
-                        std::getline(input_file,line);
-                        it3 = std::stod(line);
-                    }
-                }
-            }
-            for(auto &it : biases){
-                for(auto &it2 : it){
-                    std::getline(input_file,line);
-                    it2 = std::stod(line);
-                }
-            }
-            input_file.close();
-            return;
-            
-        }
+    function_approximator(bool pretrained = false){
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<double> dist(-1.0, 1.0);
 
-        weights.resize(int(layers.size()) - 1);
-        biases.resize(int(layers.size()) - 1);
+        weights.resize(40,0);
 
-        for (int i = 0; i < int(layers.size()) - 1; ++i) {
-            int inputSize = layers[i];
-            int outputSize = layers[i + 1];
+        if(pretrained){
+            read_weights();
+            return;
+        }
 
-            weights[i].resize(inputSize, std::vector<double>(outputSize));
-            biases[i].resize(outputSize);
+        for(auto &it : weights){
+            it = dist(gen);
+        }
+    }
 
-            for (int j = 0; j < inputSize; ++j) {
-                for (int k = 0; k < outputSize; ++k) {
-                    weights[i][j][k] = dist(gen);
+    double state_evaluation(Board &b){
+        
+        double value = 0.0;
+
+        auto curr_player = b.data.player_to_play;
+
+        if(curr_player == WHITE){
+
+            value += weights[0] * b.in_check();
+            value += weights[1] * under_threat(b,b.data.w_rook_1,curr_player);
+            value += weights[2] * under_threat(b,b.data.w_rook_2,curr_player);
+            value += weights[3] * under_threat(b,b.data.w_bishop,curr_player);
+
+            if(b.data.w_pawn_1 != DEAD){
+                if(b.data.w_pawn_1 & PAWN){
+                    value += weights[4] * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    value += weights[5];
+                }
+                else if(b.data.w_pawn_1 & ROOK){
+                    value += weights[6] * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    value += weights[7];
+                }
+                else if(b.data.w_pawn_1 & BISHOP){
+                    value += weights[8] * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    value += weights[9];
+                }
+            }
+            
+            if(b.data.w_pawn_2 != DEAD){
+                if(b.data.w_pawn_2 & PAWN){
+                    value += weights[10] * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    value += weights[11];
+                }
+                else if(b.data.w_pawn_2 & ROOK){
+                    value += weights[12] * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    value += weights[13];
+                }
+                else if(b.data.w_pawn_2 & BISHOP){
+                    value += weights[14] * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    value += weights[15];
                 }
             }
 
-            for (int j = 0; j < outputSize; ++j) {
-                biases[i][j] = dist(gen);
+            value += weights[16] * is_dead(b.data.w_rook_1);
+            value += weights[17] * is_dead(b.data.w_rook_2);
+            value += weights[18] * is_dead(b.data.w_bishop);
+
+            value += (double)(weights[38] * int(b.get_legal_moves().size()));
+
+            curr_player = (PlayerColor)(curr_player ^ (WHITE | BLACK));
+            b.flip_player_();
+
+            value += weights[19] * b.in_check();
+            value += weights[20] * under_threat(b,b.data.b_rook_1,curr_player);
+            value += weights[21] * under_threat(b,b.data.b_rook_2,curr_player);
+            value += weights[22] * under_threat(b,b.data.b_bishop,curr_player);
+
+            if(b.data.b_pawn_1 != DEAD){
+                if(b.data.b_pawn_1 & PAWN){
+                    value += weights[23] * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    value += weights[24];
+                }
+                else if(b.data.b_pawn_1 & ROOK){
+                    value += weights[25] * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    value += weights[26];
+                }
+                else if(b.data.b_pawn_1 & BISHOP){
+                    value += weights[27] * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    value += weights[28];
+                }
             }
+
+            if(b.data.b_pawn_2 != DEAD){
+                if(b.data.b_pawn_2 & PAWN){
+                    value += weights[29] * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    value += weights[30];
+                }
+                else if(b.data.b_pawn_2 & ROOK){
+                    value += weights[31] * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    value += weights[32];
+                }
+                else if(b.data.b_pawn_2 & BISHOP){
+                    value += weights[33] * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    value += weights[34];
+                }
+            }
+
+            value += weights[35] * is_dead(b.data.b_rook_1);
+            value += weights[36] * is_dead(b.data.b_rook_2);
+            value += weights[37] * is_dead(b.data.b_bishop);
+
+            value += (double)(weights[39] * int(b.get_legal_moves().size()));
+
+            b.flip_player_();
+            
+
+        }
+        else{
+            
+            value += weights[0] * b.in_check();
+            value += weights[1] * under_threat(b,b.data.b_rook_1,curr_player);
+            value += weights[2] * under_threat(b,b.data.b_rook_2,curr_player);
+            value += weights[3] * under_threat(b,b.data.b_bishop,curr_player);
+
+            if(b.data.b_pawn_1 != DEAD){
+                if(b.data.b_pawn_1 & PAWN){
+                    value += weights[4] * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    value += weights[5];
+                }
+                else if(b.data.b_pawn_1 & ROOK){
+                    value += weights[6] * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    value += weights[7];
+                }
+                else if(b.data.b_pawn_1 & BISHOP){
+                    value += weights[8] * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    value += weights[9];
+                }
+            }
+
+            if(b.data.b_pawn_2 != DEAD){
+                if(b.data.b_pawn_2 & PAWN){
+                    value += weights[10] * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    value += weights[11];
+                }
+                else if(b.data.b_pawn_2 & ROOK){
+                    value += weights[12] * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    value += weights[13];
+                }
+                else if(b.data.b_pawn_2 & BISHOP){
+                    value += weights[14] * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    value += weights[15];
+                }
+            }
+
+            value += weights[16] * is_dead(b.data.b_rook_1);
+            value += weights[17] * is_dead(b.data.b_rook_2);
+            value += weights[18] * is_dead(b.data.b_bishop);
+
+            value += (double)(weights[38] * int(b.get_legal_moves().size()));
+
+            curr_player = (PlayerColor)(curr_player ^ (WHITE | BLACK));
+            b.flip_player_();
+
+            value += weights[19] * b.in_check();
+            value += weights[20] * under_threat(b,b.data.w_rook_1,curr_player);
+            value += weights[21] * under_threat(b,b.data.w_rook_2,curr_player);
+            value += weights[22] * under_threat(b,b.data.w_bishop,curr_player);
+
+            if(b.data.w_pawn_1 != DEAD){
+                if(b.data.w_pawn_1 & PAWN){
+                    value += weights[23] * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    value += weights[24];
+                }
+                else if(b.data.w_pawn_1 & ROOK){
+                    value += weights[25] * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    value += weights[26];
+                }
+                else if(b.data.w_pawn_1 & BISHOP){
+                    value += weights[27] * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    value += weights[28];
+                }
+            }
+
+            if(b.data.w_pawn_2 != DEAD){
+                if(b.data.w_pawn_2 & PAWN){
+                    value += weights[29] * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    value += weights[30];
+                }
+                else if(b.data.w_pawn_2 & ROOK){
+                    value += weights[31] * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    value += weights[32];
+                }
+                else if(b.data.w_pawn_2 & BISHOP){
+                    value += weights[33] * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    value += weights[34];
+                }
+            }
+
+            value += weights[35] * is_dead(b.data.w_rook_1);
+            value += weights[36] * is_dead(b.data.w_rook_2);
+            value += weights[37] * is_dead(b.data.w_bishop);
+
+            value += (double)(weights[39] * int(b.get_legal_moves().size()));
+
+            b.flip_player_();
+
+            // value += (double)(weights[40] * (b.get_legal_moves().size() == 0 && (!b.in_check())));
+
+
         }
 
+        return value;
+
+    }
+
+    void weight_update(Board &b, double target, double learning_rate){
+    
+        auto curr_player = b.data.player_to_play;
+
+        auto error = target - state_evaluation(b);
+
+        if(curr_player == WHITE){
+            
+            weights[0] += learning_rate * error * b.in_check();
+            weights[1] += learning_rate * error * under_threat(b,b.data.w_rook_1,curr_player);
+            weights[2] += learning_rate * error * under_threat(b,b.data.w_rook_2,curr_player);
+            weights[3] += learning_rate * error * under_threat(b,b.data.w_bishop,curr_player);
+
+            if(b.data.w_pawn_1 != DEAD){
+                if(b.data.w_pawn_1 & PAWN){
+                    weights[4] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    weights[5] += learning_rate * error;
+                }
+                else if(b.data.w_pawn_1 & ROOK){
+                    weights[6] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    weights[7] += learning_rate * error;
+                }
+                else if(b.data.w_pawn_1 & BISHOP){
+                    weights[8] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    weights[9] += learning_rate * error;
+                }
+            }
+
+            if(b.data.w_pawn_2 != DEAD){
+                if(b.data.w_pawn_2 & PAWN){
+                    weights[10] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    weights[11] += learning_rate * error;
+                }
+                else if(b.data.w_pawn_2 & ROOK){
+                    weights[12] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    weights[13] += learning_rate * error;
+                }
+                else if(b.data.w_pawn_2 & BISHOP){
+                    weights[14] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    weights[15] += learning_rate * error;
+                }
+            }
+
+            weights[16] += learning_rate * error * is_dead(b.data.w_rook_1);
+            weights[17] += learning_rate * error * is_dead(b.data.w_rook_2);
+            weights[18] += learning_rate * error * is_dead(b.data.w_bishop);
+
+            weights[38] += learning_rate * (double)(error * int(b.get_legal_moves().size()));
+
+            curr_player = (PlayerColor)(curr_player ^ (WHITE | BLACK));
+            b.flip_player_();
+
+            weights[19] += learning_rate * error * b.in_check();
+            weights[20] += learning_rate * error * under_threat(b,b.data.b_rook_1,curr_player);
+            weights[21] += learning_rate * error * under_threat(b,b.data.b_rook_2,curr_player);
+            weights[22] += learning_rate * error * under_threat(b,b.data.b_bishop,curr_player);
+
+            if(b.data.b_pawn_1 != DEAD){
+                if(b.data.b_pawn_1 & PAWN){
+                    weights[23] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    weights[24] += learning_rate * error;
+                }
+                else if(b.data.b_pawn_1 & ROOK){
+                    weights[25] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    weights[26] += learning_rate * error;
+                }
+                else if(b.data.b_pawn_1 & BISHOP){
+                    weights[27] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    weights[28] += learning_rate * error;
+                }
+            }
+
+            if(b.data.b_pawn_2 != DEAD){
+                if(b.data.b_pawn_2 & PAWN){
+                    weights[29] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    weights[30] += learning_rate * error;
+                }
+                else if(b.data.b_pawn_2 & ROOK){
+                    weights[31] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    weights[32] += learning_rate * error;
+                }
+                else if(b.data.b_pawn_2 & BISHOP){
+                    weights[33] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    weights[34] += learning_rate * error;
+                }
+            }
+
+            weights[35] += learning_rate * error * is_dead(b.data.b_rook_1);
+            weights[36] += learning_rate * error * is_dead(b.data.b_rook_2);
+            weights[37] += learning_rate * error * is_dead(b.data.b_bishop);
+
+            weights[39] += learning_rate * (double)(error * int(b.get_legal_moves().size()));
+            b.flip_player_();
+
+        }
+        else{
+            
+            weights[0] += learning_rate * error * b.in_check();
+            weights[1] += learning_rate * error * under_threat(b,b.data.b_rook_1,curr_player);
+            weights[2] += learning_rate * error * under_threat(b,b.data.b_rook_2,curr_player);
+            weights[3] += learning_rate * error * under_threat(b,b.data.b_bishop,curr_player);
+
+            if(b.data.b_pawn_1 != DEAD){
+                if(b.data.b_pawn_1 & PAWN){
+                    weights[4] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    weights[5] += learning_rate * error;
+                }
+                else if(b.data.b_pawn_1 & ROOK){
+                    weights[6] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    weights[7] += learning_rate * error;
+                }
+                else if(b.data.b_pawn_1 & BISHOP){
+                    weights[8] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
+                    weights[9] += learning_rate * error;
+                }
+            }
+
+            if(b.data.b_pawn_2 != DEAD){
+                if(b.data.b_pawn_2 & PAWN){
+                    weights[10] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    weights[11] += learning_rate * error;
+                }
+                else if(b.data.b_pawn_2 & ROOK){
+                    weights[12] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    weights[13] += learning_rate * error;
+                }
+                else if(b.data.b_pawn_2 & BISHOP){
+                    weights[14] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
+                    weights[15] += learning_rate * error;
+                }
+            }
+
+            weights[16] += learning_rate * error * is_dead(b.data.b_rook_1);
+            weights[17] += learning_rate * error * is_dead(b.data.b_rook_2);
+            weights[18] += learning_rate * error * is_dead(b.data.b_bishop);
+
+            weights[38] += learning_rate * (double)(error * int(b.get_legal_moves().size()));
+
+            curr_player = (PlayerColor)(curr_player ^ (WHITE | BLACK));
+            b.flip_player_();
+
+            weights[19] += learning_rate * error * b.in_check();
+            weights[20] += learning_rate * error * under_threat(b,b.data.w_rook_1,curr_player);
+            weights[21] += learning_rate * error * under_threat(b,b.data.w_rook_2,curr_player);
+            weights[22] += learning_rate * error * under_threat(b,b.data.w_bishop,curr_player);
+
+            if(b.data.w_pawn_1 != DEAD){
+                if(b.data.w_pawn_1 & PAWN){
+                    weights[23] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    weights[24] += learning_rate * error;
+                }
+                else if(b.data.w_pawn_1 & ROOK){
+                    weights[25] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    weights[26] += learning_rate * error;
+                }
+                else if(b.data.w_pawn_1 & BISHOP){
+                    weights[27] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
+                    weights[28] += learning_rate * error;
+                }
+            }
+
+            if(b.data.w_pawn_2 != DEAD){
+                if(b.data.w_pawn_2 & PAWN){
+                    weights[29] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    weights[30] += learning_rate * error;
+                }
+                else if(b.data.w_pawn_2 & ROOK){
+                    weights[31] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    weights[32] += learning_rate * error;
+                }
+                else if(b.data.w_pawn_2 & BISHOP){
+                    weights[33] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
+                    weights[34] += learning_rate * error;
+                }
+            }
+
+            weights[35] += learning_rate * error * is_dead(b.data.w_rook_1);
+            weights[36] += learning_rate * error * is_dead(b.data.w_rook_2);
+            weights[37] += learning_rate * error * is_dead(b.data.w_bishop);
+
+            weights[39] += learning_rate * (double)(error * int(b.get_legal_moves().size()));
+
+            b.flip_player_();
+        }
+        write_weights();
+    }
+
+    private:
+
+    std::vector<double> weights;
+
+    // features
+
+    bool under_threat(Board &b, U8 piece, PlayerColor player){
+        auto curr_player = b.data.player_to_play;
+
+        b.data.player_to_play = player;
+
+        if(b.under_threat(piece)){
+            b.data.player_to_play = curr_player;
+            return true;
+        }
+
+        b.data.player_to_play = curr_player;
+
+        return false;
+
+    }
+
+    bool is_dead(U8 piece){
+        if(piece == DEAD){
+            return true;
+        }
+        return false;
+    }
+
+    void write_weights(){
         std::ofstream output_file("src/weights.txt");
 
         output_file<< std::hexfloat;
 
         for(auto &it : weights){
-            for(auto &it2 : it){
-                for(auto &it3 : it2){
-                    output_file<<it3<<"\n";
-                }
-            }
-        }
-        for(auto &it : biases){
-            for(auto &it2 : it){
-                output_file<<it2<<"\n";
-            }
+            output_file<<it<<"\n";
         }
 
         output_file.close();
-
-        return;
     }
+
+    void read_weights(){
+        std::ifstream input_file("src/weights.txt");
+        std::string line;
+
+        for(auto &it : weights){
+            std::getline(input_file,line);
+            it = std::stod(line);
+        }
+
+        input_file.close();
+    }
+
 };
 
 
 class QLearningAgent {
 public:
-    QLearningAgent(int inputSize,int numHiddenLayers = 1, int hiddenSize = 36, int outputSize = 1)
-        : nn(inputSize, outputSize,numHiddenLayers, hiddenSize,true) {
-            learningRate = 0.01;
+    QLearningAgent(bool pretrained = false)
+        : fn(pretrained) {
+            learningRate = 0.001;
             discountFactor = 0.8;
             trainstep = 1;
 
     }
 
     double state_evaluation(Board& b, U16 move){ // Q(s,a)
-        double score = 0;
-        std::vector<double> input;
+
         b.do_move_without_flip_(move);
-
-        if(b.data.player_to_play == WHITE){
-            input = {
-                static_cast<double>(piece_to_char(b.data.w_king)),
-                static_cast<double>(getx(b.data.w_king)),
-                static_cast<double>(gety(b.data.w_king)),
-                static_cast<double>(piece_to_char(b.data.w_rook_1)),
-                static_cast<double>(getx(b.data.w_rook_1)),
-                static_cast<double>(gety(b.data.w_rook_1)),
-                static_cast<double>(piece_to_char(b.data.w_rook_2)),
-                static_cast<double>(getx(b.data.w_rook_2)),
-                static_cast<double>(gety(b.data.w_rook_2)),
-                static_cast<double>(piece_to_char(b.data.w_bishop)),
-                static_cast<double>(getx(b.data.w_bishop)),
-                static_cast<double>(gety(b.data.w_bishop)),
-                static_cast<double>(piece_to_char(b.data.w_pawn_1)),
-                static_cast<double>(getx(b.data.w_pawn_1)),
-                static_cast<double>(gety(b.data.w_pawn_1)),
-                static_cast<double>(piece_to_char(b.data.w_pawn_2)),
-                static_cast<double>(getx(b.data.w_pawn_2)),
-                static_cast<double>(gety(b.data.w_pawn_2)),
-                static_cast<double>(piece_to_char(b.data.b_king)),
-                static_cast<double>(getx(b.data.b_king)),
-                static_cast<double>(gety(b.data.b_king)),
-                static_cast<double>(piece_to_char(b.data.b_rook_1)),
-                static_cast<double>(getx(b.data.b_rook_1)),
-                static_cast<double>(gety(b.data.b_rook_1)),
-                static_cast<double>(piece_to_char(b.data.b_rook_2)),
-                static_cast<double>(getx(b.data.b_rook_2)),
-                static_cast<double>(gety(b.data.b_rook_2)),
-                static_cast<double>(piece_to_char(b.data.b_bishop)),
-                static_cast<double>(getx(b.data.b_bishop)),
-                static_cast<double>(gety(b.data.b_bishop)),
-                static_cast<double>(piece_to_char(b.data.b_pawn_1)),
-                static_cast<double>(getx(b.data.b_pawn_1)),
-                static_cast<double>(gety(b.data.b_pawn_1)),
-                static_cast<double>(piece_to_char(b.data.b_pawn_2)),
-                static_cast<double>(getx(b.data.b_pawn_2)),
-                static_cast<double>(gety(b.data.b_pawn_2))
-                
-
-            };
-
-        }
-        else{
-            input = {
-                static_cast<double>(piece_to_char(b.data.b_king)),
-                static_cast<double>(getx(b.data.b_king)),
-                static_cast<double>(gety(b.data.b_king)),
-                static_cast<double>(piece_to_char(b.data.b_rook_1)),
-                static_cast<double>(getx(b.data.b_rook_1)),
-                static_cast<double>(gety(b.data.b_rook_1)),
-                static_cast<double>(piece_to_char(b.data.b_rook_2)),
-                static_cast<double>(getx(b.data.b_rook_2)),
-                static_cast<double>(gety(b.data.b_rook_2)),
-                static_cast<double>(piece_to_char(b.data.b_bishop)),
-                static_cast<double>(getx(b.data.b_bishop)),
-                static_cast<double>(gety(b.data.b_bishop)),
-                static_cast<double>(piece_to_char(b.data.b_pawn_1)),
-                static_cast<double>(getx(b.data.b_pawn_1)),
-                static_cast<double>(gety(b.data.b_pawn_1)),
-                static_cast<double>(piece_to_char(b.data.b_pawn_2)),
-                static_cast<double>(getx(b.data.b_pawn_2)),
-                static_cast<double>(gety(b.data.b_pawn_2)),
-                static_cast<double>(piece_to_char(b.data.w_king)),
-                static_cast<double>(getx(b.data.w_king)),
-                static_cast<double>(gety(b.data.w_king)),
-                static_cast<double>(piece_to_char(b.data.w_rook_1)),
-                static_cast<double>(getx(b.data.w_rook_1)),
-                static_cast<double>(gety(b.data.w_rook_1)),
-                static_cast<double>(piece_to_char(b.data.w_rook_2)),
-                static_cast<double>(getx(b.data.w_rook_2)),
-                static_cast<double>(gety(b.data.w_rook_2)),
-                static_cast<double>(piece_to_char(b.data.w_bishop)),
-                static_cast<double>(getx(b.data.w_bishop)),
-                static_cast<double>(gety(b.data.w_bishop)),
-                static_cast<double>(piece_to_char(b.data.w_pawn_1)),
-                static_cast<double>(getx(b.data.w_pawn_1)),
-                static_cast<double>(gety(b.data.w_pawn_1)),
-                static_cast<double>(piece_to_char(b.data.w_pawn_2)),
-                static_cast<double>(getx(b.data.w_pawn_2)),
-                static_cast<double>(gety(b.data.w_pawn_2))
-            };
-
-        }
+        double score = fn.state_evaluation(b);
         b.undo_last_move_without_flip_(move);
-        std::vector<double> output = nn.forward(input);
-        score = output[0];
         return score;
     }
 
@@ -526,93 +666,7 @@ public:
 
         }
 
-        
-        std::vector<double> input;
-
-        if(state.data.player_to_play == WHITE){
-            input = {
-                static_cast<double>(piece_to_char(state.data.w_king)),
-                static_cast<double>(getx(state.data.w_king)),
-                static_cast<double>(gety(state.data.w_king)),
-                static_cast<double>(piece_to_char(state.data.w_rook_1)),
-                static_cast<double>(getx(state.data.w_rook_1)),
-                static_cast<double>(gety(state.data.w_rook_1)),
-                static_cast<double>(piece_to_char(state.data.w_rook_2)),
-                static_cast<double>(getx(state.data.w_rook_2)),
-                static_cast<double>(gety(state.data.w_rook_2)),
-                static_cast<double>(piece_to_char(state.data.w_bishop)),
-                static_cast<double>(getx(state.data.w_bishop)),
-                static_cast<double>(gety(state.data.w_bishop)),
-                static_cast<double>(piece_to_char(state.data.w_pawn_1)),
-                static_cast<double>(getx(state.data.w_pawn_1)),
-                static_cast<double>(gety(state.data.w_pawn_1)),
-                static_cast<double>(piece_to_char(state.data.w_pawn_2)),
-                static_cast<double>(getx(state.data.w_pawn_2)),
-                static_cast<double>(gety(state.data.w_pawn_2)),
-                static_cast<double>(piece_to_char(state.data.b_king)),
-                static_cast<double>(getx(state.data.b_king)),
-                static_cast<double>(gety(state.data.b_king)),
-                static_cast<double>(piece_to_char(state.data.b_rook_1)),
-                static_cast<double>(getx(state.data.b_rook_1)),
-                static_cast<double>(gety(state.data.b_rook_1)),
-                static_cast<double>(piece_to_char(state.data.b_rook_2)),
-                static_cast<double>(getx(state.data.b_rook_2)),
-                static_cast<double>(gety(state.data.b_rook_2)),
-                static_cast<double>(piece_to_char(state.data.b_bishop)),
-                static_cast<double>(getx(state.data.b_bishop)),
-                static_cast<double>(gety(state.data.b_bishop)),
-                static_cast<double>(piece_to_char(state.data.b_pawn_1)),
-                static_cast<double>(getx(state.data.b_pawn_1)),
-                static_cast<double>(gety(state.data.b_pawn_1)),
-                static_cast<double>(piece_to_char(state.data.b_pawn_2)),
-                static_cast<double>(getx(state.data.b_pawn_2)),
-                static_cast<double>(gety(state.data.b_pawn_2))
-
-            };
-
-        }
-        else{
-            input = {
-                static_cast<double>(piece_to_char(state.data.b_king)),
-                static_cast<double>(getx(state.data.b_king)),
-                static_cast<double>(gety(state.data.b_king)),
-                static_cast<double>(piece_to_char(state.data.b_rook_1)),
-                static_cast<double>(getx(state.data.b_rook_1)),
-                static_cast<double>(gety(state.data.b_rook_1)),
-                static_cast<double>(piece_to_char(state.data.b_rook_2)),
-                static_cast<double>(getx(state.data.b_rook_2)),
-                static_cast<double>(gety(state.data.b_rook_2)),
-                static_cast<double>(piece_to_char(state.data.b_bishop)),
-                static_cast<double>(getx(state.data.b_bishop)),
-                static_cast<double>(gety(state.data.b_bishop)),
-                static_cast<double>(piece_to_char(state.data.b_pawn_1)),
-                static_cast<double>(getx(state.data.b_pawn_1)),
-                static_cast<double>(gety(state.data.b_pawn_1)),
-                static_cast<double>(piece_to_char(state.data.b_pawn_2)),
-                static_cast<double>(getx(state.data.b_pawn_2)),
-                static_cast<double>(gety(state.data.b_pawn_2)),
-                static_cast<double>(piece_to_char(state.data.w_king)),
-                static_cast<double>(getx(state.data.w_king)),
-                static_cast<double>(gety(state.data.w_king)),
-                static_cast<double>(piece_to_char(state.data.w_rook_1)),
-                static_cast<double>(getx(state.data.w_rook_1)),
-                static_cast<double>(gety(state.data.w_rook_1)),
-                static_cast<double>(piece_to_char(state.data.w_rook_2)),
-                static_cast<double>(getx(state.data.w_rook_2)),
-                static_cast<double>(gety(state.data.w_rook_2)),
-                static_cast<double>(piece_to_char(state.data.w_bishop)),
-                static_cast<double>(getx(state.data.w_bishop)),
-                static_cast<double>(gety(state.data.w_bishop)),
-                static_cast<double>(piece_to_char(state.data.w_pawn_1)),
-                static_cast<double>(getx(state.data.w_pawn_1)),
-                static_cast<double>(gety(state.data.w_pawn_1)),
-                static_cast<double>(piece_to_char(state.data.w_pawn_2)),
-                static_cast<double>(getx(state.data.w_pawn_2)),
-                static_cast<double>(gety(state.data.w_pawn_2))
-            };
-
-        }
-        nn.train(std::vector<std::vector<double>>({input}),std::vector<std::vector<double>>({{reward/1000 - discountFactor * next_q_val}}),learningRate,1);
+        fn.weight_update(state,reward - discountFactor * next_q_val,learningRate/((double)trainstep));
         trainstep += 1;
         state.data.last_killed_piece = last_killed;
         state.data.last_killed_piece_idx = last_killed_idx;
@@ -621,7 +675,7 @@ public:
     }
 
 private:
-    NeuralNetwork nn;
+    function_approximator fn;
     double trainstep;
     double learningRate;
     double discountFactor;
