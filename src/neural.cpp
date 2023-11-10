@@ -1,4 +1,4 @@
-#include <iostream>
+#include <bits/stdc++.h>
 #include <vector>
 #include <cmath>
 #include <iterator>
@@ -16,7 +16,7 @@ int32_t board_evaluate(Board& b){
 
     auto curr_player = b.data.player_to_play ;
 
-    b.data.player_to_play = WHITE;
+    b.data.player_to_play = BLACK;
 
     if(b.under_threat(b.data.b_king)){
         reward += 100;
@@ -39,133 +39,115 @@ int32_t board_evaluate(Board& b){
     if(b.data.b_bishop == DEAD){
         reward += 20;
     }
-    if(b.data.b_pawn_1 & PAWN){
+
+    if(b.data.b_pawn_1 != DEAD){
+        reward -= 10;
+    }
+    else if(b.data.b_pawn_1 & PAWN){
         if(!b.under_threat(b.data.b_pawn_1)){
             reward -= 1;
-        }
-        if(b.data.b_pawn_1 != DEAD){
-            reward -= 10;
         }
     }
     else if(b.data.b_pawn_1 & ROOK){
         if(!b.under_threat(b.data.b_pawn_1)){
             reward -= 5;
         }
-        if(b.data.b_pawn_1 != DEAD){
-            reward -= 20;
-        }
     }
     else if(b.data.b_pawn_1 & BISHOP){
         if(!b.under_threat(b.data.b_pawn_1)){
             reward -= 3;
         }
-        if(b.data.b_pawn_1 != DEAD){
-            reward -= 20;
-        }
     }
 
+    if(b.data.b_pawn_2 != DEAD){
+        reward -= 10;
+    }
+    else
     if(b.data.b_pawn_2 & PAWN){
         if(!b.under_threat(b.data.b_pawn_2)){
             reward -= 1;
-        }
-        if(b.data.b_pawn_2 != DEAD){
-            reward -= 10;
         }
     }
     else if(b.data.b_pawn_2 & ROOK){
         if(!b.under_threat(b.data.b_pawn_2)){
             reward -= 5;
         }
-        if(b.data.b_pawn_2 != DEAD){
-            reward -= 20;
-        }
     }
     else if(b.data.b_pawn_2 & BISHOP){
         if(!b.under_threat(b.data.b_pawn_2)){
             reward -= 3;
         }
-        if(b.data.b_pawn_2 != DEAD){
-            reward -= 20;
-        }
     }
-    b.data.player_to_play = BLACK;
+
+    b.data.player_to_play = WHITE;
 
     if(b.under_threat(b.data.w_king)){
         reward -= 100;
     }
     if(b.under_threat(b.data.w_rook_1)){
-        reward -= 20;
+        reward -= 5;
     }
     if(b.data.w_rook_1 == DEAD){
-        reward -= 5;
+        reward -= 20;
     }
     if(b.under_threat(b.data.w_rook_2)){
-        reward -= 20;
-    }
-    if(b.data.w_rook_2 == DEAD){
         reward -= 5;
     }
-    if(b.under_threat(b.data.w_bishop)){
+    if(b.data.w_rook_2 == DEAD){
         reward -= 20;
     }
-    if(b.data.w_bishop == DEAD){
+    if(b.under_threat(b.data.w_bishop)){
         reward -= 3;
     }
-    if(b.data.w_pawn_1 & PAWN){
-        if(!b.under_threat(b.data.w_pawn_1)){
+    if(b.data.w_bishop == DEAD){
+        reward -= 20;
+    }
+    
+    if(b.data.w_pawn_1 != DEAD){
             reward += 10;
-        }
-        if(b.data.w_pawn_1 != DEAD){
+    }
+    else if(b.data.w_pawn_1 & PAWN){
+        if(!b.under_threat(b.data.w_pawn_1)){
             reward += 1;
         }
     }
     else if(b.data.w_pawn_1 & ROOK){
         if(!b.under_threat(b.data.w_pawn_1)){
-            reward += 20;
-        }
-        if(b.data.w_pawn_1 != DEAD){
             reward += 5;
         }
     }
     else if(b.data.w_pawn_1 & BISHOP){
         if(!b.under_threat(b.data.w_pawn_1)){
-            reward += 20;
+            reward += 5;
         }
-        if(b.data.w_pawn_1 != DEAD){
-            reward += 3;
-        }
+        
     }
 
-    if(b.data.w_pawn_2 & PAWN){
-        if(!b.under_threat(b.data.w_pawn_2)){
+    if(b.data.w_pawn_2 != DEAD){
             reward += 10;
-        }
-        if(b.data.w_pawn_2 != DEAD){
+    }
+    else if(b.data.w_pawn_2 & PAWN){
+        if(!b.under_threat(b.data.w_pawn_2)){
             reward += 1;
         }
     }
-    else if(b.data.w_pawn_2 & ROOK){
+    else if(b.data.w_pawn_1 & ROOK){
         if(!b.under_threat(b.data.w_pawn_2)){
-            reward += 20;
-        }
-        if(b.data.w_pawn_2 != DEAD){
             reward += 5;
         }
     }
     else if(b.data.w_pawn_2 & BISHOP){
         if(!b.under_threat(b.data.w_pawn_2)){
-            reward += 20;
+            reward += 5;
         }
-        if(b.data.w_pawn_2 != DEAD){
-            reward += 3;
-        }
+        
     }
 
     b.data.player_to_play = curr_player;
 
     b.flip_player_();
     if(b.get_legal_moves().size() == 0 && b.in_check()){
-        reward = 10000;
+        reward = 1000;
         b.flip_player_();
         return reward;
     }
@@ -414,7 +396,7 @@ class QLearningAgent {
 public:
     QLearningAgent(int inputSize,int numHiddenLayers = 1, int hiddenSize = 36, int outputSize = 1)
         : nn(inputSize, outputSize,numHiddenLayers, hiddenSize,true) {
-            learningRate = 0.1;
+            learningRate = 0.01;
             discountFactor = 0.8;
             trainstep = 1;
 
@@ -630,7 +612,7 @@ public:
             };
 
         }
-        nn.train(std::vector<std::vector<double>>({input}),std::vector<std::vector<double>>({{reward/10000 - discountFactor * next_q_val}}),learningRate/trainstep,1);
+        nn.train(std::vector<std::vector<double>>({input}),std::vector<std::vector<double>>({{reward/1000 - discountFactor * next_q_val}}),learningRate,1);
         trainstep += 1;
         state.data.last_killed_piece = last_killed;
         state.data.last_killed_piece_idx = last_killed_idx;
