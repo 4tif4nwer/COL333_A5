@@ -7,7 +7,7 @@ SRC=src/server.cpp src/board.cpp src/butils.cpp src/bdata.cpp src/engine.cpp src
 
 rollerball:
 	mkdir -p bin
-	$(CC) $(CFLAGS) $(INCLUDES) $(SRC) -lpthread -o bin/rollerball
+	$(CC) $(CFLAGS) $(INCLUDES) $(SRC) -lpthread -o bin/rollerball2
 
 trainer:
 	mkdir -p bin

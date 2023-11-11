@@ -7,39 +7,28 @@
 
 using namespace std;
 
-std::string board_encode(const Board& b){
-    std::string perspective = "";
-    perspective += std::to_string(getx(b.data.w_king));
-    perspective += std::to_string(gety(b.data.w_king));
-    perspective += std::to_string(getx(b.data.w_rook_1));
-    perspective += std::to_string(gety(b.data.w_rook_1));
-    perspective += std::to_string(getx(b.data.w_rook_2));
-    perspective += std::to_string(gety(b.data.w_rook_2));
-    perspective += std::to_string(getx(b.data.w_bishop));
-    perspective += std::to_string(gety(b.data.w_bishop));
-    perspective += std::to_string(getx(b.data.w_pawn_1));
-    perspective += std::to_string(gety(b.data.w_pawn_1));
-    perspective += std::to_string(getx(b.data.w_pawn_2));
-    perspective += std::to_string(gety(b.data.w_pawn_2));
 
-    perspective += std::to_string(getx(b.data.b_king));
-    perspective += std::to_string(gety(b.data.b_king));
-    perspective += std::to_string(getx(b.data.b_rook_1));
-    perspective += std::to_string(gety(b.data.b_rook_1));
-    perspective += std::to_string(getx(b.data.b_rook_2));
-    perspective += std::to_string(gety(b.data.b_rook_2));
-    perspective += std::to_string(getx(b.data.b_bishop));
-    perspective += std::to_string(gety(b.data.b_bishop));
-    perspective += std::to_string(getx(b.data.b_pawn_1));
-    perspective += std::to_string(gety(b.data.b_pawn_1));
-    perspective += std::to_string(getx(b.data.b_pawn_2));
-    perspective += std::to_string(gety(b.data.b_pawn_2));
-    
-    return perspective;
+double exploration_constant = 0.0;
+std::map<string,int> seen_boards;
+std::map<pair<string,int>,int> seen_board_moves;
+
+double explore(string board,int move){
+    if(seen_boards[board] == 0){
+        seen_boards[board] = 1;
+    }
+
+    if(seen_board_moves[{board,move}] == 0){
+        seen_board_moves[{board,move}] = 1;
+    }
+
+    double exp = sqrt(log(seen_boards[board])/seen_board_moves[{board,move}]);
+
+    seen_boards[board]++;
+    seen_board_moves[{board,move}]++;
+
+    return exp * exploration_constant;
 }
-
 int main(){
-    bool f = 0;
 
     Board test;
 
@@ -47,6 +36,8 @@ int main(){
 
     QLearningAgent Qlearn(true);
     std::cout<<"Training\n";
+
+    bool f = true;
 
     for(int games = 1; games <= 1000000 ; ++games){
         std::cout<<"Game : "<<games<<"\n";
@@ -62,12 +53,15 @@ int main(){
 
         int playedmoves = 0;
         while(1){
+            f = !f;
             playedmoves++;
             auto initial_board = all_boards_to_str(b);
 
             board_count[board_encode(b)]++;
             if(board_count[board_encode(b)] == 3){
-                cout<<"Draw"<<endl;
+                cout<<"Threefold Repetition in "<<(playedmoves + 1)/2<<" moves"<<endl;
+
+                std::cout<<all_boards_to_str(b)<<"\n";
                 break;
             }
             
@@ -77,20 +71,20 @@ int main(){
 
             if(moveset.size() == 0 && b.in_check()){
                 if(f)
-                    cout<<"Game Over, player 1 wins in "<<(playedmoves+1)/2<< "moves" <<endl;
+                    cout<<"Game Over, player 1 wins in "<<(playedmoves+1)/2<< " moves" <<endl;
                 else
-                    cout<<"Game Over, player 2 wins in "<<(playedmoves+1)/2<< "moves" <<endl;
+                    cout<<"Game Over, player 2 wins in "<<(playedmoves+1)/2<< " moves" <<endl;
                 break;
             }
             else if(moveset.size() == 0){
-                cout<<"Draw"<<endl;
+                cout<<"Stalemate in "<<(playedmoves+1)/2<< " moves" <<endl;
                 break;
             }
             
             // sample an integer from 1 to 100
             int r = rand() % 100;
             auto move = *moveset.begin();
-            if(r<30){
+            if(f){
                 std::vector<U16> moves;
                 std::sample(
                     moveset.begin(),
@@ -100,32 +94,42 @@ int main(){
                     std::mt19937{std::random_device{}()}
                 );
                 move = moves[0];
+                
             }
             else{
-                double q_val = DBL_MIN;
+                std::vector<U16> moves;
+                std::sample(
+                    moveset.begin(),
+                    moveset.end(),
+                    std::back_inserter(moves),
+                    1,
+                    std::mt19937{std::random_device{}()}
+                );
+                move = moves[0];
+
+                auto q_val = Qlearn.state_evaluation(b,move,board_count);
                 for(auto &it : moveset){
-                    auto eval = Qlearn.state_evaluation(b,it) ;
-                    // auto board_now = all_boards_to_str(b);
-                    // assert(board_now == initial_board);
-                    if(q_val < eval){
+                    auto eval = Qlearn.state_evaluation(b,it,board_count);
+                    if(q_val < (eval)){
                         move = it;
                         q_val = eval;
                     }
                 }
+                // std::cout<<q_val<<endl;
             }
 
             b.do_move_without_flip_(move);
             bool isdraw = false;
-            // if(board_count[board_encode(b)] == 2){
-            //     isdraw = true;
-            // }
+            if(board_count[board_encode(b)] == 2){
+                isdraw = true;
+            }
             b.flip_player_();
             if(b.get_legal_moves().size() == 0 && !b.in_check()){
                 isdraw = true;
             }
             b.flip_player_();
             b.undo_last_move_without_flip_(move);
-            Qlearn.qLearningUpdate(b,move,isdraw);
+            Qlearn.qLearningUpdate(b,move,board_count,isdraw);
             auto board_now = all_boards_to_str(b);
             b.do_move_(move);
             // cout<<move_to_str(move)<<endl;
@@ -134,7 +138,6 @@ int main(){
             //     std::cout<<board_now<<"\n"<<initial_board<<"\n";
             // }
             // assert(board_now == initial_board);
-            f = !f;
         }  
         
     }
