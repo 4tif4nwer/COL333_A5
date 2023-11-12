@@ -7,7 +7,15 @@ SRC=src/server.cpp src/board.cpp src/butils.cpp src/bdata.cpp src/engine.cpp src
 
 rollerball:
 	mkdir -p bin
-	$(CC) $(CFLAGS) $(INCLUDES) $(SRC) -lpthread -o bin/rollerball2
+	$(CC) $(CFLAGS) $(INCLUDES) $(SRC) -lpthread -o bin/rollerball
+
+rollerball_random:
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(INCLUDES) $(SRC) -lpthread -o bin/rollerball_rand
+
+rollerball_a2:
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(INCLUDES) $(SRC) -lpthread -o bin/rollerball_a2
 
 trainer:
 	mkdir -p bin
