@@ -51,136 +51,136 @@ int32_t board_evaluate(Board& b){
     // After move evaluation
     int64_t reward = 0;
 
-    auto curr_player = b.data.player_to_play ;
+    // auto curr_player = b.data.player_to_play ;
 
-    b.data.player_to_play = BLACK;
+    // b.data.player_to_play = BLACK;
 
-    if(b.under_threat(b.data.b_king)){
-        reward += 100;
-    }
-    if(b.under_threat(b.data.b_rook_1)){
-        reward += 5;
-    }
-    if(b.data.b_rook_1 == DEAD){
-        reward += 20;
-    }
-    if(b.under_threat(b.data.b_rook_2)){
-        reward += 5;
-    }
-    if(b.data.b_rook_2 == DEAD){
-        reward += 20;
-    }
-    if(b.under_threat(b.data.b_bishop)){
-        reward += 3;
-    }
-    if(b.data.b_bishop == DEAD){
-        reward += 20;
-    }
+    // if(b.under_threat(b.data.b_king)){
+    //     reward += 100;
+    // }
+    // if(b.under_threat(b.data.b_rook_1)){
+    //     reward += 5;
+    // }
+    // if(b.data.b_rook_1 == DEAD){
+    //     reward += 20;
+    // }
+    // if(b.under_threat(b.data.b_rook_2)){
+    //     reward += 5;
+    // }
+    // if(b.data.b_rook_2 == DEAD){
+    //     reward += 20;
+    // }
+    // if(b.under_threat(b.data.b_bishop)){
+    //     reward += 3;
+    // }
+    // if(b.data.b_bishop == DEAD){
+    //     reward += 20;
+    // }
 
-    if(b.data.b_pawn_1 != DEAD){
-        reward -= 10;
-    }
-    else if(b.data.b_pawn_1 & PAWN){
-        if(!b.under_threat(b.data.b_pawn_1)){
-            reward -= 1;
-        }
-    }
-    else if(b.data.b_pawn_1 & ROOK){
-        if(!b.under_threat(b.data.b_pawn_1)){
-            reward -= 5;
-        }
-    }
-    else if(b.data.b_pawn_1 & BISHOP){
-        if(!b.under_threat(b.data.b_pawn_1)){
-            reward -= 3;
-        }
-    }
+    // if(b.data.b_pawn_1 != DEAD){
+    //     reward -= 10;
+    // }
+    // else if(b.data.b_pawn_1 & PAWN){
+    //     if(!b.under_threat(b.data.b_pawn_1)){
+    //         reward -= 1;
+    //     }
+    // }
+    // else if(b.data.b_pawn_1 & ROOK){
+    //     if(!b.under_threat(b.data.b_pawn_1)){
+    //         reward -= 5;
+    //     }
+    // }
+    // else if(b.data.b_pawn_1 & BISHOP){
+    //     if(!b.under_threat(b.data.b_pawn_1)){
+    //         reward -= 3;
+    //     }
+    // }
 
-    if(b.data.b_pawn_2 != DEAD){
-        reward -= 10;
-    }
-    else
-    if(b.data.b_pawn_2 & PAWN){
-        if(!b.under_threat(b.data.b_pawn_2)){
-            reward -= 1;
-        }
-    }
-    else if(b.data.b_pawn_2 & ROOK){
-        if(!b.under_threat(b.data.b_pawn_2)){
-            reward -= 5;
-        }
-    }
-    else if(b.data.b_pawn_2 & BISHOP){
-        if(!b.under_threat(b.data.b_pawn_2)){
-            reward -= 3;
-        }
-    }
+    // if(b.data.b_pawn_2 != DEAD){
+    //     reward -= 10;
+    // }
+    // else
+    // if(b.data.b_pawn_2 & PAWN){
+    //     if(!b.under_threat(b.data.b_pawn_2)){
+    //         reward -= 1;
+    //     }
+    // }
+    // else if(b.data.b_pawn_2 & ROOK){
+    //     if(!b.under_threat(b.data.b_pawn_2)){
+    //         reward -= 5;
+    //     }
+    // }
+    // else if(b.data.b_pawn_2 & BISHOP){
+    //     if(!b.under_threat(b.data.b_pawn_2)){
+    //         reward -= 3;
+    //     }
+    // }
 
-    b.data.player_to_play = WHITE;
+    // b.data.player_to_play = WHITE;
 
-    if(b.under_threat(b.data.w_king)){
-        reward -= 100;
-    }
-    if(b.under_threat(b.data.w_rook_1)){
-        reward -= 5;
-    }
-    if(b.data.w_rook_1 == DEAD){
-        reward -= 20;
-    }
-    if(b.under_threat(b.data.w_rook_2)){
-        reward -= 5;
-    }
-    if(b.data.w_rook_2 == DEAD){
-        reward -= 20;
-    }
-    if(b.under_threat(b.data.w_bishop)){
-        reward -= 3;
-    }
-    if(b.data.w_bishop == DEAD){
-        reward -= 20;
-    }
+    // if(b.under_threat(b.data.w_king)){
+    //     reward -= 100;
+    // }
+    // if(b.under_threat(b.data.w_rook_1)){
+    //     reward -= 5;
+    // }
+    // if(b.data.w_rook_1 == DEAD){
+    //     reward -= 20;
+    // }
+    // if(b.under_threat(b.data.w_rook_2)){
+    //     reward -= 5;
+    // }
+    // if(b.data.w_rook_2 == DEAD){
+    //     reward -= 20;
+    // }
+    // if(b.under_threat(b.data.w_bishop)){
+    //     reward -= 3;
+    // }
+    // if(b.data.w_bishop == DEAD){
+    //     reward -= 20;
+    // }
     
-    if(b.data.w_pawn_1 != DEAD){
-            reward += 10;
-    }
-    else if(b.data.w_pawn_1 & PAWN){
-        if(!b.under_threat(b.data.w_pawn_1)){
-            reward += 1;
-        }
-    }
-    else if(b.data.w_pawn_1 & ROOK){
-        if(!b.under_threat(b.data.w_pawn_1)){
-            reward += 5;
-        }
-    }
-    else if(b.data.w_pawn_1 & BISHOP){
-        if(!b.under_threat(b.data.w_pawn_1)){
-            reward += 5;
-        }
+    // if(b.data.w_pawn_1 != DEAD){
+    //         reward += 10;
+    // }
+    // else if(b.data.w_pawn_1 & PAWN){
+    //     if(!b.under_threat(b.data.w_pawn_1)){
+    //         reward += 1;
+    //     }
+    // }
+    // else if(b.data.w_pawn_1 & ROOK){
+    //     if(!b.under_threat(b.data.w_pawn_1)){
+    //         reward += 5;
+    //     }
+    // }
+    // else if(b.data.w_pawn_1 & BISHOP){
+    //     if(!b.under_threat(b.data.w_pawn_1)){
+    //         reward += 5;
+    //     }
         
-    }
+    // }
 
-    if(b.data.w_pawn_2 != DEAD){
-            reward += 10;
-    }
-    else if(b.data.w_pawn_2 & PAWN){
-        if(!b.under_threat(b.data.w_pawn_2)){
-            reward += 1;
-        }
-    }
-    else if(b.data.w_pawn_1 & ROOK){
-        if(!b.under_threat(b.data.w_pawn_2)){
-            reward += 5;
-        }
-    }
-    else if(b.data.w_pawn_2 & BISHOP){
-        if(!b.under_threat(b.data.w_pawn_2)){
-            reward += 5;
-        }
+    // if(b.data.w_pawn_2 != DEAD){
+    //         reward += 10;
+    // }
+    // else if(b.data.w_pawn_2 & PAWN){
+    //     if(!b.under_threat(b.data.w_pawn_2)){
+    //         reward += 1;
+    //     }
+    // }
+    // else if(b.data.w_pawn_1 & ROOK){
+    //     if(!b.under_threat(b.data.w_pawn_2)){
+    //         reward += 5;
+    //     }
+    // }
+    // else if(b.data.w_pawn_2 & BISHOP){
+    //     if(!b.under_threat(b.data.w_pawn_2)){
+    //         reward += 5;
+    //     }
         
-    }
+    // }
 
-    b.data.player_to_play = curr_player;
+    // b.data.player_to_play = curr_player;
 
     b.flip_player_();
     if(b.get_legal_moves().size() == 0 && b.in_check()){
@@ -190,16 +190,18 @@ int32_t board_evaluate(Board& b){
     }
     b.flip_player_();
     
-    if(b.data.player_to_play == BLACK){
-        reward = -reward;
-    }
+    // if(b.data.player_to_play == BLACK){
+    //     reward = -reward;
+    // }
 
-    return reward;
+    return 0;
 }
 
 class function_approximator{
 
     public:
+
+    std::unordered_set<U16> pseudolegal_moves;
 
     function_approximator(bool pretrained = false){
         std::random_device rd;
@@ -225,6 +227,8 @@ class function_approximator{
         auto curr_player = b.data.player_to_play;
 
         if(curr_player == WHITE){
+
+            pseudolegal_moves = b.get_pseudolegal_moves_for_side(b.data.player_to_play ^ (WHITE | BLACK));
 
             value += weights[0] * b.in_check();
             value += weights[1] * under_threat(b,b.data.w_rook_1,curr_player);
@@ -289,6 +293,8 @@ class function_approximator{
 
             curr_player = (PlayerColor)(curr_player ^ (WHITE | BLACK));
             b.flip_player_();
+
+            pseudolegal_moves = b.get_pseudolegal_moves_for_side(b.data.player_to_play ^ (WHITE | BLACK));
 
             value += weights[19] * b.in_check();
             value += weights[20] * under_threat(b,b.data.b_rook_1,curr_player);
@@ -358,6 +364,8 @@ class function_approximator{
 
         }
         else{
+
+            pseudolegal_moves = b.get_pseudolegal_moves_for_side(b.data.player_to_play ^ (WHITE | BLACK));
             
             value += weights[0] * b.in_check();
             value += weights[1] * under_threat(b,b.data.b_rook_1,curr_player);
@@ -422,6 +430,8 @@ class function_approximator{
 
             curr_player = (PlayerColor)(curr_player ^ (WHITE | BLACK));
             b.flip_player_();
+
+            pseudolegal_moves = b.get_pseudolegal_moves_for_side(b.data.player_to_play ^ (WHITE | BLACK));
 
             value += weights[19] * b.in_check();
             value += weights[20] * under_threat(b,b.data.w_rook_1,curr_player);
@@ -503,6 +513,8 @@ class function_approximator{
         weights[59] += learning_rate * error * state_count;
 
         if(curr_player == WHITE){
+
+            pseudolegal_moves = b.get_pseudolegal_moves_for_side(b.data.player_to_play ^ (WHITE | BLACK));
             
             weights[0] += learning_rate * error * b.in_check();
             weights[1] += learning_rate * error * under_threat(b,b.data.w_rook_1,curr_player);
@@ -567,6 +579,8 @@ class function_approximator{
 
             curr_player = (PlayerColor)(curr_player ^ (WHITE | BLACK));
             b.flip_player_();
+
+            pseudolegal_moves = b.get_pseudolegal_moves_for_side(b.data.player_to_play ^ (WHITE | BLACK));
 
             weights[19] += learning_rate * error * b.in_check();
             weights[20] += learning_rate * error * under_threat(b,b.data.b_rook_1,curr_player);
@@ -635,6 +649,8 @@ class function_approximator{
 
         }
         else{
+
+            pseudolegal_moves = b.get_pseudolegal_moves_for_side(b.data.player_to_play ^ (WHITE | BLACK));
             
             weights[0] += learning_rate * error * b.in_check();
             weights[1] += learning_rate * error * under_threat(b,b.data.b_rook_1,curr_player);
@@ -699,6 +715,8 @@ class function_approximator{
 
             curr_player = (PlayerColor)(curr_player ^ (WHITE | BLACK));
             b.flip_player_();
+
+            pseudolegal_moves = b.get_pseudolegal_moves_for_side(b.data.player_to_play ^ (WHITE | BLACK));
 
             weights[19] += learning_rate * error * b.in_check();
             weights[20] += learning_rate * error * under_threat(b,b.data.w_rook_1,curr_player);
@@ -775,19 +793,15 @@ class function_approximator{
     // features
 
     bool under_threat(Board &b, U8 piece, PlayerColor player){
-        auto curr_player = b.data.player_to_play;
 
-        b.data.player_to_play = player;
-
-        if(b.under_threat(piece)){
-            b.data.player_to_play = curr_player;
-            return true;
+        for (auto move : pseudolegal_moves) {
+            // std::cout << move_to_str(move) << " ";
+            if (getp1(move) == piece) {
+                // std::cout << "<- causes check\n";
+                return true;
+            }
         }
-
-        b.data.player_to_play = curr_player;
-
-        return false;
-
+        return false;    
     }
 
     bool is_dead(U8 piece){
@@ -922,7 +936,7 @@ public:
 
         double reward = double(next_score - curr_score);
         double next_q_val = -DBL_MAX;
-        if(isdraw){
+                if(isdraw){
             reward = -500;
             next_q_val = 0;
         }
@@ -939,9 +953,11 @@ public:
             }
             state.flip_player_();
 
+            next_q_val = -next_q_val;
+
         }
 
-        fn.weight_update(state,reward - discountFactor * next_q_val,learningRate/((double)trainstep),board_count[board_encode(state)]);
+        fn.weight_update(state,reward + discountFactor * next_q_val,learningRate/((double)trainstep),board_count[board_encode(state)]);
         trainstep += 1;
         state.data.last_killed_piece = last_killed;
         state.data.last_killed_piece_idx = last_killed_idx;

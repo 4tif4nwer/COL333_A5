@@ -7,55 +7,168 @@
 
 using namespace std;
 
+const double MIN = -1000;
+const double MAX = 1000;
 
-double exploration_constant = 0.0;
-std::map<string,int> seen_boards;
-std::map<pair<string,int>,int> seen_board_moves;
+QLearningAgent Qlearn(true);
+int16_t maxDepth=3;
 
-double explore(string board,int move){
-    if(seen_boards[board] == 0){
-        seen_boards[board] = 1;
+
+bool ge_operator(const std::pair<double,int16_t> & a, const std::pair<double,int16_t> & b){
+    if(a.first != b.first){
+        return (a.first > b.first);
     }
-
-    if(seen_board_moves[{board,move}] == 0){
-        seen_board_moves[{board,move}] = 1;
+    else if(a.first < 0){
+        return (a.second >= b.second);
     }
-
-    double exp = sqrt(log(seen_boards[board])/seen_board_moves[{board,move}]);
-
-    seen_boards[board]++;
-    seen_board_moves[{board,move}]++;
-
-    return exp * exploration_constant;
+    return (a.second <= b.second);
 }
+
+std::pair<double,U16> minimax(Board &b,int16_t depth,
+            bool maximizingPlayer, double alpha, double beta,
+            std::pair<U8,int> last_killed_data, map<string,int> &board_count)
+{
+
+
+    auto moves = b.get_legal_moves();
+
+    if (depth == maxDepth) {
+        double eval = -DBL_MAX;
+        U16 move = 0;
+        for(auto &it : moves){
+            auto value = Qlearn.state_evaluation(b,it,board_count);
+            b.data.last_killed_piece = last_killed_data.first;
+            b.data.last_killed_piece_idx = last_killed_data.second;
+            if(value > eval){
+                eval = value;
+                move = it;
+            }
+        }
+        if(depth % 2 == 0){
+            eval = -eval;
+        }
+        return std::make_pair(eval, move);
+    }
+
+    if(moves.size() == 0 && !b.in_check()){ 
+        return std::make_pair(0, 0);
+    }
+ 
+
+    if (maximizingPlayer)
+    {
+        std::pair<double, U16>  best = {-DBL_MAX, 0};
+ 
+        // Recur for left and
+        // right children
+        for (auto m : moves) {
+            b.do_move_(m);
+            std::pair<double, U16> val;
+            board_count[board_encode(b)]++;
+            val = minimax(b, depth + 1,
+                    false,alpha,beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),board_count);
+            board_count[board_encode(b)]--;
+            b.flip_player_();
+            b.undo_last_move_without_flip_(m);
+            b.data.last_killed_piece = last_killed_data.first;
+            b.data.last_killed_piece_idx = last_killed_data.second;
+            
+            if(val.first >= best.first) {
+                best.first = val.first;
+                best.second = m;
+            }
+
+            alpha = std::max(alpha, best.first);
+
+            // Alpha Beta Pruning
+            if (beta <= alpha)
+                break;
+        }
+        
+        return best;
+    }
+    else
+    {
+        std::pair<double, U16>  best = {DBL_MAX, 0};
+
+        for (auto m : moves) {
+            b.do_move_(m);
+            std::pair<double, U16> val;
+            board_count[board_encode(b)]++;
+            val = minimax(b, depth + 1,
+                    true,alpha,beta, std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),board_count);
+            board_count[board_encode(b)]--;
+
+            b.flip_player_();
+            b.undo_last_move_without_flip_(m);
+
+            b.data.last_killed_piece = last_killed_data.first;
+            b.data.last_killed_piece_idx = last_killed_data.second;
+            
+
+            if(best.first >= val.first) {
+                best.first = val.first;
+                best.second = m;
+            }
+
+            beta = std::min(beta, best.first);
+
+            // Alpha Beta Pruning
+            if (beta <= alpha)
+                break;
+        }
+        return best;
+    }
+    
+}
+
+// double exploration_constant = 0.0;
+// std::map<string,int> seen_boards;
+// std::map<pair<string,int>,int> seen_board_moves;
+
+// double explore(string board,int move){
+//     if(seen_boards[board] == 0){
+//         seen_boards[board] = 1;
+//     }
+
+//     if(seen_board_moves[{board,move}] == 0){
+//         seen_board_moves[{board,move}] = 1;
+//     }
+
+//     double exp = sqrt(log(seen_boards[board])/seen_board_moves[{board,move}]);
+
+//     seen_boards[board]++;
+//     seen_board_moves[{board,move}]++;
+
+//     return exp * exploration_constant;
+// }
+
 int main(){
 
-    Board test;
-
+    Board test(SEVEN_THREE);
     auto pure_board = all_boards_to_str(test);
-
-    QLearningAgent Qlearn(true);
+    std::cout<<pure_board<<"\n";
     std::cout<<"Training\n";
 
-    bool f = true;
 
     for(int games = 1; games <= 1000000 ; ++games){
         std::cout<<"Game : "<<games<<"\n";
-        Board b = Board(test.data);
-        if(all_boards_to_str(b)!= pure_board){
-            std::cout<<all_boards_to_str(b)<<"\n"<<pure_board<<"\n";
-        }
+        Board b = Board(SEVEN_THREE);
+        // if(all_boards_to_str(b)!= pure_board){
+        //     std::cout<<all_boards_to_str(b)<<"\n"<<pure_board<<"\n";
+        // }
+        assert(all_boards_to_str(b) == pure_board);        
+        bool f = true;
 
         srand(time(0));
         map<string,int> board_count;
 
-        assert(all_boards_to_str(b) == pure_board);
 
         int playedmoves = 0;
         while(1){
             f = !f;
             playedmoves++;
-            auto initial_board = all_boards_to_str(b);
+            // auto initial_board = all_boards_to_str(b);
 
             board_count[board_encode(b)]++;
             if(board_count[board_encode(b)] == 3){
@@ -84,7 +197,7 @@ int main(){
             // sample an integer from 1 to 100
             int r = rand() % 100;
             auto move = *moveset.begin();
-            if(f){
+            if(r<30){
                 std::vector<U16> moves;
                 std::sample(
                     moveset.begin(),
@@ -106,14 +219,15 @@ int main(){
                     std::mt19937{std::random_device{}()}
                 );
                 move = moves[0];
+                auto initial_board = all_boards_to_str(b);
+                auto search_result = minimax(b, 1, true,DBL_MIN,DBL_MAX, std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),board_count);
 
-                auto q_val = Qlearn.state_evaluation(b,move,board_count);
-                for(auto &it : moveset){
-                    auto eval = Qlearn.state_evaluation(b,it,board_count);
-                    if(q_val < (eval)){
-                        move = it;
-                        q_val = eval;
-                    }
+                assert(initial_board == all_boards_to_str(b));
+                if(search_result.second != 0){
+                    move = search_result.second;
+                }
+                else{
+                    std::cout<<"not ok\n";
                 }
                 // std::cout<<q_val<<endl;
             }
@@ -129,8 +243,10 @@ int main(){
             }
             b.flip_player_();
             b.undo_last_move_without_flip_(move);
+
             Qlearn.qLearningUpdate(b,move,board_count,isdraw);
-            auto board_now = all_boards_to_str(b);
+
+            // auto board_now = all_boards_to_str(b);
             b.do_move_(move);
             // cout<<move_to_str(move)<<endl;
             // cout<<all_boards_to_str(b)<<"\n";
