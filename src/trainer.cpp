@@ -11,7 +11,7 @@ const double MIN = -1000;
 const double MAX = 1000;
 
 QLearningAgent Qlearn(true);
-int16_t maxDepth=3;
+int16_t maxDepth=1;
 
 
 bool ge_operator(const std::pair<double,int16_t> & a, const std::pair<double,int16_t> & b){
