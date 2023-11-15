@@ -11,7 +11,7 @@ const double MIN = -1000;
 const double MAX = 1000;
 
 QLearningAgent Qlearn(true);
-int16_t maxDepth=1;
+int16_t maxDepth=5;
 
 
 bool ge_operator(const std::pair<double,int16_t> & a, const std::pair<double,int16_t> & b){
@@ -147,9 +147,9 @@ int main(){
 
     Board test(SEVEN_THREE);
     auto pure_board = all_boards_to_str(test);
-    std::cout<<pure_board<<"\n";
+    // std::cout<<pure_board<<"\n";
     std::cout<<"Training\n";
-
+    // exit(0);
 
     for(int games = 1; games <= 1000000 ; ++games){
         std::cout<<"Game : "<<games<<"\n";
@@ -197,7 +197,7 @@ int main(){
             // sample an integer from 1 to 100
             int r = rand() % 100;
             auto move = *moveset.begin();
-            if(r<30){
+            if(r<5){
                 std::vector<U16> moves;
                 std::sample(
                     moveset.begin(),
@@ -220,15 +220,16 @@ int main(){
                 );
                 move = moves[0];
                 auto initial_board = all_boards_to_str(b);
-                auto search_result = minimax(b, 1, true,DBL_MIN,DBL_MAX, std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),board_count);
+                auto search_result = minimax(b, 1, true,-DBL_MAX,DBL_MAX, std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),board_count);
 
                 assert(initial_board == all_boards_to_str(b));
                 if(search_result.second != 0){
                     move = search_result.second;
+                    // std::cout<<search_result.first<<endl;
                 }
-                else{
-                    std::cout<<"not ok\n";
-                }
+                // else{
+                //     // std::cout<<"No move found"<<endl;
+                // }
                 // std::cout<<q_val<<endl;
             }
 
