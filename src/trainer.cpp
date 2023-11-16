@@ -210,7 +210,7 @@ int main(){
             // sample an integer from 1 to 100
             int r = rand() % 100;
             auto move = *moveset.begin();
-            if(r<4){
+            if(r<20){
                 std::vector<U16> moves;
                 std::sample(
                     moveset.begin(),
