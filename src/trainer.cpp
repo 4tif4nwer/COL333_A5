@@ -11,7 +11,7 @@ const double MIN = -1000;
 const double MAX = 1000;
 
 QLearningAgent Qlearn(true);
-int16_t maxDepth=5;
+int16_t maxDepth=3;
 
 
 bool ge_operator(const std::pair<double,int16_t> & a, const std::pair<double,int16_t> & b){
@@ -149,6 +149,19 @@ int main(){
     auto pure_board = all_boards_to_str(test);
     // std::cout<<pure_board<<"\n";
     std::cout<<"Training\n";
+    // function_approximator f(true);
+    // std::cout<<getx(test.data.b_pawn_1)<<gety(test.data.b_pawn_1)<<"\n";
+    // std::vector<std::vector<double>> X(7,std::vector<double>(7,0));
+    // for(int i=0;i<7;i++){
+    //     for(int j=0;j<7;j++){
+    //         if(i>1 && i<5 && j>1 && j<5)
+    //            X[i][j] = 0;
+    //         else
+    //             X[i][j] = f.circular_distance_7_3(i,j,2,0);
+    //         std::cout<<X[i][j]<<" ";
+    //     }
+    //     std::cout<<"\n";
+    // }
     // exit(0);
 
     for(int games = 1; games <= 1000000 ; ++games){
@@ -197,7 +210,7 @@ int main(){
             // sample an integer from 1 to 100
             int r = rand() % 100;
             auto move = *moveset.begin();
-            if(r<5){
+            if(r<4){
                 std::vector<U16> moves;
                 std::sample(
                     moveset.begin(),

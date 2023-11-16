@@ -77,8 +77,8 @@ int32_t board_evaluate(Board& b){
     //     reward += 20;
     // }
 
-    // if(b.data.b_pawn_1 != DEAD){
-    //     reward -= 10;
+    // if(b.data.b_pawn_1 == DEAD){
+    //     reward += 10;
     // }
     // else if(b.data.b_pawn_1 & PAWN){
     //     if(!b.under_threat(b.data.b_pawn_1)){
@@ -96,11 +96,10 @@ int32_t board_evaluate(Board& b){
     //     }
     // }
 
-    // if(b.data.b_pawn_2 != DEAD){
-    //     reward -= 10;
+    // if(b.data.b_pawn_2 == DEAD){
+    //     reward += 10;
     // }
-    // else
-    // if(b.data.b_pawn_2 & PAWN){
+    // else if(b.data.b_pawn_2 & PAWN){
     //     if(!b.under_threat(b.data.b_pawn_2)){
     //         reward -= 1;
     //     }
@@ -140,8 +139,8 @@ int32_t board_evaluate(Board& b){
     //     reward -= 20;
     // }
     
-    // if(b.data.w_pawn_1 != DEAD){
-    //         reward += 10;
+    // if(b.data.w_pawn_1 == DEAD){
+    //         reward -= 10;
     // }
     // else if(b.data.w_pawn_1 & PAWN){
     //     if(!b.under_threat(b.data.w_pawn_1)){
@@ -160,8 +159,8 @@ int32_t board_evaluate(Board& b){
         
     // }
 
-    // if(b.data.w_pawn_2 != DEAD){
-    //         reward += 10;
+    // if(b.data.w_pawn_2 == DEAD){
+    //         reward -= 10;
     // }
     // else if(b.data.w_pawn_2 & PAWN){
     //     if(!b.under_threat(b.data.w_pawn_2)){
@@ -193,7 +192,7 @@ int32_t board_evaluate(Board& b){
     // if(b.data.player_to_play == BLACK){
     //     reward = -reward;
     // }
-
+    // return reward;
     return 0;
 }
 
@@ -209,6 +208,7 @@ class function_approximator{
         std::uniform_real_distribution<double> dist(-1.0, 1.0);
 
         weights.resize(78,0);
+        bias.resize(1,0);
 
         if(pretrained){
             read_weights();
@@ -218,11 +218,15 @@ class function_approximator{
         for(auto &it : weights){
             it = dist(gen);
         }
+
+        bias[0] = dist(gen);
     }
 
     double state_evaluation(Board &b, int state_count = 0){
         
         double value = weights[59] * state_count;
+
+        value += bias[0];
 
         auto curr_player = b.data.player_to_play;
 
@@ -546,6 +550,8 @@ class function_approximator{
 
         auto error = target - state_evaluation(b,state_count);
 
+        bias[0] += learning_rate * error;
+
         weights[59] += learning_rate * error * state_count;
 
         if(curr_player == WHITE){
@@ -567,13 +573,13 @@ class function_approximator{
                 else if(b.data.w_pawn_1 & ROOK){
                     weights[6] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
                     weights[7] += learning_rate * error;
-                    weights[44] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),getx(b.data.b_king),gety(b.data.b_king));
+                    // weights[44] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),getx(b.data.b_king),gety(b.data.b_king));
                     weights[61] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_pawn_1).size());
                 }
                 else if(b.data.w_pawn_1 & BISHOP){
                     weights[8] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
                     weights[9] += learning_rate * error;
-                    weights[45] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),getx(b.data.b_king),gety(b.data.b_king));
+                    // weights[45] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),getx(b.data.b_king),gety(b.data.b_king));
                     weights[62] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_pawn_1).size());
                 }
             }
@@ -588,33 +594,33 @@ class function_approximator{
                 else if(b.data.w_pawn_2 & ROOK){
                     weights[12] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
                     weights[13] += learning_rate * error;
-                    weights[47] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),getx(b.data.b_king),gety(b.data.b_king));
+                    // weights[47] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),getx(b.data.b_king),gety(b.data.b_king));
                     weights[64] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_pawn_2).size());
                 }
                 else if(b.data.w_pawn_2 & BISHOP){
                     weights[14] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
                     weights[15] += learning_rate * error;
-                    weights[48] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),getx(b.data.b_king),gety(b.data.b_king));
+                    // weights[48] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),getx(b.data.b_king),gety(b.data.b_king));
                     weights[65] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_pawn_2).size());
                 }
             }
 
             if(!is_dead(b.data.w_rook_1)){
-                weights[40] += learning_rate * error * circular_distance_7_3(getx(b.data.w_rook_1),gety(b.data.w_rook_1),getx(b.data.b_king),gety(b.data.b_king));
+                // weights[40] += learning_rate * error * circular_distance_7_3(getx(b.data.w_rook_1),gety(b.data.w_rook_1),getx(b.data.b_king),gety(b.data.b_king));
                 weights[66] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_rook_1).size());
             }
             else{
                 weights[16] += learning_rate * error;
             }
             if(!is_dead(b.data.w_rook_2)){
-                weights[41] += learning_rate * error * circular_distance_7_3(getx(b.data.w_rook_2),gety(b.data.w_rook_2),getx(b.data.b_king),gety(b.data.b_king));
+                // weights[41] += learning_rate * error * circular_distance_7_3(getx(b.data.w_rook_2),gety(b.data.w_rook_2),getx(b.data.b_king),gety(b.data.b_king));
                 weights[67] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_rook_2).size());
             }
             else{
                 weights[17] += learning_rate * error;
             }
             if(!is_dead(b.data.w_bishop)){
-                weights[42] += learning_rate * error * circular_distance_7_3(getx(b.data.w_bishop),gety(b.data.w_bishop),getx(b.data.b_king),gety(b.data.b_king));
+                // weights[42] += learning_rate * error * circular_distance_7_3(getx(b.data.w_bishop),gety(b.data.w_bishop),getx(b.data.b_king),gety(b.data.b_king));
                 weights[68] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_bishop).size());
             }
             else{
@@ -642,13 +648,13 @@ class function_approximator{
                 else if(b.data.b_pawn_1 & ROOK){
                     weights[25] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
                     weights[26] += learning_rate * error;
-                    weights[53] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),getx(b.data.w_king),gety(b.data.w_king));
+                    // weights[53] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),getx(b.data.w_king),gety(b.data.w_king));
                     weights[70] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_pawn_1).size());
                 }
                 else if(b.data.b_pawn_1 & BISHOP){
                     weights[27] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
                     weights[28] += learning_rate * error;
-                    weights[54] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),getx(b.data.w_king),gety(b.data.w_king));
+                    // weights[54] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),getx(b.data.w_king),gety(b.data.w_king));
                     weights[71] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_pawn_1).size());
                 }
             }
@@ -663,32 +669,32 @@ class function_approximator{
                 else if(b.data.b_pawn_2 & ROOK){
                     weights[31] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
                     weights[32] += learning_rate * error;
-                    weights[56] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),getx(b.data.w_king),gety(b.data.w_king));
+                    // weights[56] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),getx(b.data.w_king),gety(b.data.w_king));
                     weights[73] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_pawn_2).size());
                 }
                 else if(b.data.b_pawn_2 & BISHOP){
                     weights[33] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
                     weights[34] += learning_rate * error;
-                    weights[57] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),getx(b.data.w_king),gety(b.data.w_king));
+                    // weights[57] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),getx(b.data.w_king),gety(b.data.w_king));
                     weights[74] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_pawn_2).size());
                 }
             }
             if(!is_dead(b.data.b_rook_1)){
-                weights[49] += learning_rate * error * circular_distance_7_3(getx(b.data.b_rook_1),gety(b.data.b_rook_1),getx(b.data.w_king),gety(b.data.w_king));
+                // weights[49] += learning_rate * error * circular_distance_7_3(getx(b.data.b_rook_1),gety(b.data.b_rook_1),getx(b.data.w_king),gety(b.data.w_king));
                 weights[75] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_rook_1).size());
             }
             else{
                 weights[35] += learning_rate * error;
             }
             if(!is_dead(b.data.b_rook_2)){
-                weights[50] += learning_rate * error * circular_distance_7_3(getx(b.data.b_rook_2),gety(b.data.b_rook_2),getx(b.data.w_king),gety(b.data.w_king));
+                // weights[50] += learning_rate * error * circular_distance_7_3(getx(b.data.b_rook_2),gety(b.data.b_rook_2),getx(b.data.w_king),gety(b.data.w_king));
                 weights[76] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_rook_2).size());
             }
             else{
                 weights[36] += learning_rate * error;
             }
             if(!is_dead(b.data.b_bishop)){
-                weights[51] += learning_rate * error * circular_distance_7_3(getx(b.data.b_bishop),gety(b.data.b_bishop),getx(b.data.w_king),gety(b.data.w_king));
+                // weights[51] += learning_rate * error * circular_distance_7_3(getx(b.data.b_bishop),gety(b.data.b_bishop),getx(b.data.w_king),gety(b.data.w_king));
                 weights[77] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_bishop).size());
             }
             else{
@@ -721,13 +727,13 @@ class function_approximator{
                 else if(b.data.b_pawn_1 & ROOK){
                     weights[6] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
                     weights[7] += learning_rate * error;
-                    weights[44] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),getx(b.data.w_king),gety(b.data.w_king));
+                    // weights[44] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),getx(b.data.w_king),gety(b.data.w_king));
                     weights[61] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_pawn_1).size());
                 }
                 else if(b.data.b_pawn_1 & BISHOP){
                     weights[8] += learning_rate * error * !(under_threat(b,b.data.b_pawn_1,curr_player));
                     weights[9] += learning_rate * error;
-                    weights[45] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),getx(b.data.w_king),gety(b.data.w_king));
+                    // weights[45] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),getx(b.data.w_king),gety(b.data.w_king));
                     weights[62] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_pawn_1).size());
                 }
             }
@@ -742,32 +748,32 @@ class function_approximator{
                 else if(b.data.b_pawn_2 & ROOK){
                     weights[12] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
                     weights[13] += learning_rate * error;
-                    weights[47] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),getx(b.data.w_king),gety(b.data.w_king));
+                    // weights[47] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),getx(b.data.w_king),gety(b.data.w_king));
                     weights[64] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_pawn_2).size());
                 }
                 else if(b.data.b_pawn_2 & BISHOP){
                     weights[14] += learning_rate * error * !(under_threat(b,b.data.b_pawn_2,curr_player));
                     weights[15] += learning_rate * error;
-                    weights[48] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),getx(b.data.w_king),gety(b.data.w_king));
+                    // weights[48] += learning_rate * error * circular_distance_7_3(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),getx(b.data.w_king),gety(b.data.w_king));
                     weights[65] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_pawn_2).size());
                 }
             }
             if(!is_dead(b.data.b_rook_1)){
-                weights[40] += learning_rate * error * circular_distance_7_3(getx(b.data.b_rook_1),gety(b.data.b_rook_1),getx(b.data.w_king),gety(b.data.w_king));
+                // weights[40] += learning_rate * error * circular_distance_7_3(getx(b.data.b_rook_1),gety(b.data.b_rook_1),getx(b.data.w_king),gety(b.data.w_king));
                 weights[66] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_rook_1).size());
             }
             else{
                 weights[16] += learning_rate * error;
             }
             if(!is_dead(b.data.b_rook_2)){
-                weights[41] += learning_rate * error * circular_distance_7_3(getx(b.data.b_rook_2),gety(b.data.b_rook_2),getx(b.data.w_king),gety(b.data.w_king));
+                // weights[41] += learning_rate * error * circular_distance_7_3(getx(b.data.b_rook_2),gety(b.data.b_rook_2),getx(b.data.w_king),gety(b.data.w_king));
                 weights[67] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_rook_2).size());
             }
             else{
                 weights[17] += learning_rate * error;
             }
             if(!is_dead(b.data.b_bishop)){
-                weights[42] += learning_rate * error * circular_distance_7_3(getx(b.data.b_bishop),gety(b.data.b_bishop),getx(b.data.w_king),gety(b.data.w_king));
+                // weights[42] += learning_rate * error * circular_distance_7_3(getx(b.data.b_bishop),gety(b.data.b_bishop),getx(b.data.w_king),gety(b.data.w_king));
                 weights[68] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.b_bishop).size());
             }
             else{
@@ -796,13 +802,13 @@ class function_approximator{
                 else if(b.data.w_pawn_1 & ROOK){
                     weights[25] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
                     weights[26] += learning_rate * error;
-                    weights[53] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),getx(b.data.b_king),gety(b.data.b_king));
+                    // weights[53] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),getx(b.data.b_king),gety(b.data.b_king));
                     weights[70] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_pawn_1).size());
                 }
                 else if(b.data.w_pawn_1 & BISHOP){
                     weights[27] += learning_rate * error * !(under_threat(b,b.data.w_pawn_1,curr_player));
                     weights[28] += learning_rate * error;
-                    weights[54] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),getx(b.data.b_king),gety(b.data.b_king));
+                    // weights[54] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),getx(b.data.b_king),gety(b.data.b_king));
                     weights[71] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_pawn_1).size());
                 }
             }
@@ -817,32 +823,32 @@ class function_approximator{
                 else if(b.data.w_pawn_2 & ROOK){
                     weights[31] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
                     weights[32] += learning_rate * error;
-                    weights[56] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),getx(b.data.b_king),gety(b.data.b_king));
+                    // weights[56] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),getx(b.data.b_king),gety(b.data.b_king));
                     weights[73] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_pawn_2).size());
                 }
                 else if(b.data.w_pawn_2 & BISHOP){
                     weights[33] += learning_rate * error * !(under_threat(b,b.data.w_pawn_2,curr_player));
                     weights[34] += learning_rate * error;
-                    weights[57] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),getx(b.data.b_king),gety(b.data.b_king));
+                    // weights[57] += learning_rate * error * circular_distance_7_3(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),getx(b.data.b_king),gety(b.data.b_king));
                     weights[74] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_pawn_2).size());
                 }
             }
             if(!is_dead(b.data.w_rook_1)){
-                weights[49] += learning_rate * error * circular_distance_7_3(getx(b.data.w_rook_1),gety(b.data.w_rook_1),getx(b.data.b_king),gety(b.data.b_king));
+                // weights[49] += learning_rate * error * circular_distance_7_3(getx(b.data.w_rook_1),gety(b.data.w_rook_1),getx(b.data.b_king),gety(b.data.b_king));
                 weights[75] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_rook_1).size());
             }
             else{
                 weights[35] += learning_rate * error;
             }
             if(!is_dead(b.data.w_rook_2)){
-                weights[50] += learning_rate * error * circular_distance_7_3(getx(b.data.w_rook_2),gety(b.data.w_rook_2),getx(b.data.b_king),gety(b.data.b_king));
+                // weights[50] += learning_rate * error * circular_distance_7_3(getx(b.data.w_rook_2),gety(b.data.w_rook_2),getx(b.data.b_king),gety(b.data.b_king));
                 weights[76] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_rook_2).size());
             }
             else{
                 weights[36] += learning_rate * error;
             }
             if(!is_dead(b.data.w_bishop)){
-                weights[51] += learning_rate * error * circular_distance_7_3(getx(b.data.w_bishop),gety(b.data.w_bishop),getx(b.data.b_king),gety(b.data.b_king));
+                // weights[51] += learning_rate * error * circular_distance_7_3(getx(b.data.w_bishop),gety(b.data.w_bishop),getx(b.data.b_king),gety(b.data.b_king));
                 weights[77] += learning_rate * error * int(b.get_pseudolegal_moves_for_piece(b.data.w_bishop).size());
             }
             else{
@@ -860,6 +866,8 @@ class function_approximator{
 
 
     std::vector<double> weights;
+
+    std::vector<double> bias;
 
     // features
 
@@ -883,16 +891,16 @@ class function_approximator{
         // int dist = 0;
         
         // if(x1 == 0 && x2 == 0 && y1 <= y2){
-        //     return 0.0*(y2 - y1);
+        //     return (y2 - y1);
         // }
-        // else if(y1 == 0 && y2 == 0 && x1 <= x2){
-        //     return 0.0*(x2 - x1);
+        // else if(y1 == 0 && y2 == 0 && x1 >= x2){
+        //     return (x1 - x2);
         // }
         // else if(x1 == 6 && x2 == 6 && y1 >= y2){
-        //     return 0.0*(y1 - y2);
+        //     return (y1 - y2);
         // }
-        // else if(y1 == 6 && y2 == 6 && x1 >= x2){
-        //     return 0.0*(x1 - x2);
+        // else if(y1 == 6 && y2 == 6 && x2 >= x1){
+        //     return (x2 - x1);
         // }
 
         // if(x1 == 0 || x1 == 6){
@@ -930,9 +938,11 @@ class function_approximator{
         // }
 
         // int p1,p2;
+        
+        // assert(x1 == 1 || x1 == 5 || y1 == 1 || y1 == 5);
 
         // if(x1 == 1)
-        //     p1 = y1;
+        //     p1 = y1-1;
         // else if(x1 == 5){
         //     p1 = 13 - y1;
         // }
@@ -945,8 +955,10 @@ class function_approximator{
 
         // p1 %= 16;
 
+        // assert(x2 == 1 || x2 == 5 || y2 == 1 || y2 == 5);
+
         // if(x2 == 1)
-        //     p2 = y2;
+        //     p2 = y2-1;
         // else if(x2 == 5){
         //     p2 = 13 - y2;
         // }
@@ -960,10 +972,11 @@ class function_approximator{
         // p2 %= 16;
 
         // if(p1>p2)
-        //     return 0.0*(dist + (16 - (p1 - p2)));
+        //     return  (dist + (16 - (p1 - p2)));
 
-        // return 0.0*(dist + (p2 - p1));
+        // return (dist + (p2 - p1));
         return 0;
+        // return abs(x1-x2) + abs(y1-y2);
     }
 
     void write_weights(){
@@ -974,6 +987,8 @@ class function_approximator{
         for(auto &it : weights){
             output_file<<it<<"\n";
         }
+
+        output_file<<bias[0]<<"\n";
 
         output_file.close();
     }
@@ -987,6 +1002,9 @@ class function_approximator{
             it = std::stod(line);
         }
 
+        std::getline(input_file,line);
+        bias[0] = std::stod(line);
+
         input_file.close();
     }
 
@@ -997,8 +1015,8 @@ class QLearningAgent {
 public:
     QLearningAgent(bool pretrained = false)
         : fn(pretrained) {
-            learningRate = 0.01;
-            discountFactor = 0.8;
+            learningRate = 0.001;
+            discountFactor = 0.9;
             trainstep = 1;
 
     }
