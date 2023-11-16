@@ -19,13 +19,24 @@ std::string board_encode(const Board& b){
     perspective += std::to_string(gety(b.data.w_rook_2));
     perspective += std::to_string(getx(b.data.w_bishop));
     perspective += std::to_string(gety(b.data.w_bishop));
+    perspective += std::to_string(getx(b.data.w_knight_1));
+    perspective += std::to_string(gety(b.data.w_knight_1));
+    perspective += std::to_string(getx(b.data.w_knight_2));
+    perspective += std::to_string(gety(b.data.w_knight_2));
     perspective += std::to_string(getx(b.data.w_pawn_1));
     perspective += std::to_string(gety(b.data.w_pawn_1));
     perspective += std::to_string(getx(b.data.w_pawn_2));
     perspective += std::to_string(gety(b.data.w_pawn_2));
+    perspective += std::to_string(getx(b.data.w_pawn_3));
+    perspective += std::to_string(gety(b.data.w_pawn_3));
+    perspective += std::to_string(getx(b.data.w_pawn_4));
+    perspective += std::to_string(gety(b.data.w_pawn_4));
+    
 
     perspective += piece_to_char(b.data.w_pawn_1);
     perspective += piece_to_char(b.data.w_pawn_2);
+    perspective += piece_to_char(b.data.w_pawn_3);
+    perspective += piece_to_char(b.data.w_pawn_4);
 
     perspective += std::to_string(getx(b.data.b_king));
     perspective += std::to_string(gety(b.data.b_king));
@@ -35,13 +46,23 @@ std::string board_encode(const Board& b){
     perspective += std::to_string(gety(b.data.b_rook_2));
     perspective += std::to_string(getx(b.data.b_bishop));
     perspective += std::to_string(gety(b.data.b_bishop));
+    perspective += std::to_string(getx(b.data.b_knight_1));
+    perspective += std::to_string(gety(b.data.b_knight_1));
+    perspective += std::to_string(getx(b.data.b_knight_2));
+    perspective += std::to_string(gety(b.data.b_knight_2));
     perspective += std::to_string(getx(b.data.b_pawn_1));
     perspective += std::to_string(gety(b.data.b_pawn_1));
     perspective += std::to_string(getx(b.data.b_pawn_2));
     perspective += std::to_string(gety(b.data.b_pawn_2));
+    perspective += std::to_string(getx(b.data.b_pawn_3));
+    perspective += std::to_string(gety(b.data.b_pawn_3));
+    perspective += std::to_string(getx(b.data.b_pawn_4));
+    perspective += std::to_string(gety(b.data.b_pawn_4));
 
     perspective += piece_to_char(b.data.b_pawn_1);
     perspective += piece_to_char(b.data.b_pawn_2);
+    perspective += piece_to_char(b.data.b_pawn_3);
+    perspective += piece_to_char(b.data.b_pawn_4);
     
     return perspective;
 }
@@ -202,12 +223,21 @@ class function_approximator{
 
     std::unordered_set<U16> pseudolegal_moves;
 
-    function_approximator(bool pretrained = false){
+    function_approximator(bool pretrained = false, BoardType board_type = SEVEN_THREE){
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<double> dist(-1.0, 1.0);
 
-        weights.resize(42,0);
+        if(board_type == SEVEN_THREE){
+            weights.resize(42,0);
+        }
+        else if(board_type == EIGHT_TWO){
+            //something
+        }        
+        else{
+            //something
+        }
+
         bias.resize(1,0);
 
         if(pretrained){
@@ -222,7 +252,7 @@ class function_approximator{
         bias[0] = dist(gen);
     }
 
-    double state_evaluation(Board &b, int state_count = 0){
+    double state_evaluation_7_3(Board &b, int state_count = 0){
         
         double value = weights[41] * state_count;
 
@@ -456,11 +486,11 @@ class function_approximator{
 
     }
 
-    void weight_update(Board &b, double target, double learning_rate, int state_count = 0){
+    void weight_update_7_3(Board &b, double target, double learning_rate, int state_count = 0){
     
         auto curr_player = b.data.player_to_play;
 
-        auto error = target - state_evaluation(b,state_count);
+        auto error = target - state_evaluation_7_3(b,state_count);
 
         bias[0] += learning_rate * error;
 
@@ -840,7 +870,12 @@ public:
     double state_evaluation(Board& b, U16 move, std::map<std::string,int>& board_count){ // Q(s,a)
 
         b.do_move_without_flip_(move);
-        double score = fn.state_evaluation(b,board_count[board_encode(b)]);
+        if(b.data.board_type == SEVEN_THREE)
+            double score = fn.state_evaluation_7_3(b,board_count[board_encode(b)]);
+        else if(b.data.board_type == EIGHT_TWO)
+            double score = fn.state_evaluation_8_4(b,board_count[board_encode(b)]);
+        else
+            double score = fn.state_evaluation_8_2(b,board_count[board_encode(b)]);
         b.undo_last_move_without_flip_(move);
         return score;
     }
@@ -875,8 +910,13 @@ public:
             next_q_val = -next_q_val;
 
         }
-
-        fn.weight_update(state,reward + discountFactor * next_q_val,learningRate/((double)trainstep),board_count[board_encode(state)]);
+        if(b.data.board_type == SEVEN_THREE)
+            fn.weight_update_7_3(state,reward + discountFactor * next_q_val,learningRate/((double)trainstep),board_count[board_encode(state)]);
+        else if(b.data.board_type == EIGHT_TWO)
+            fn.weight_update_8_2(state,reward + discountFactor * next_q_val,learningRate/((double)trainstep),board_count[board_encode(state)]);
+        else
+            fn.weight_update_8_4(state,reward + discountFactor * next_q_val,learningRate/((double)trainstep),board_count[board_encode(state)]);
+        
         trainstep += 1;
         state.data.last_killed_piece = last_killed;
         state.data.last_killed_piece_idx = last_killed_idx;
