@@ -172,7 +172,7 @@ function on_newgameok(side, tokens) {
 function ask_for_move(side) {
     var move_message = `position startpos moves ${state.game.move_list.join(' ')}`;
     send_message(side, move_message);
-    send_message(side, `go ${state.timer.white.time_ms}`);
+    send_message(side, `go ${state.timer[side].time_ms}`);
 }
 
 function on_bestmove(side, tokens) {
@@ -188,6 +188,7 @@ function on_bestmove(side, tokens) {
     // check if it's a null move. If yes, declare checkmate/stalemate
     if (move === '0000') {
         stop_game(`${side} gave a null move, indicating either Checkmate or Stalemante`);
+        return;
     }
 
     state.game.move_list.push(move);

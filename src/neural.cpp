@@ -244,7 +244,7 @@ class function_approximator{
         bias.resize(1,0);
 
         if(pretrained){
-            read_weights();
+            read_weights(board_type);
             return;
         }
 
@@ -279,7 +279,7 @@ class function_approximator{
                 if(b.data.w_pawn_1 & PAWN){
                     value += weights[4] * !(under_threat(b,b.data.w_pawn_1,curr_player));
                     value += weights[5];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,5) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,6)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,5) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,6) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,7)));
                 }
                 else if(b.data.w_pawn_1 & ROOK){
                     value += weights[6] * !(under_threat(b,b.data.w_pawn_1,curr_player));
@@ -295,7 +295,7 @@ class function_approximator{
                 if(b.data.w_pawn_2 & PAWN){
                     value += weights[10] * !(under_threat(b,b.data.w_pawn_2,curr_player));
                     value += weights[11];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,5) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,6)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,5) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,6) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,7)));
                 }
                 else if(b.data.w_pawn_2 & ROOK){
                     value += weights[12] * !(under_threat(b,b.data.w_pawn_2,curr_player));
@@ -311,7 +311,7 @@ class function_approximator{
                 if(b.data.w_pawn_3 & PAWN){
                     value += weights[42] * !(under_threat(b,b.data.w_pawn_3,curr_player));
                     value += weights[43];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),5,6) + manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),5,7)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),4,5) + manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),4,6) + manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),4,7)));
                 }
                 else if(b.data.w_pawn_3 & ROOK){
                     value += weights[44] * !(under_threat(b,b.data.w_pawn_3,curr_player));
@@ -327,7 +327,7 @@ class function_approximator{
                 if(b.data.w_pawn_4 & PAWN){
                     value += weights[54] * !(under_threat(b,b.data.w_pawn_4,curr_player));
                     value += weights[55];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),5,6) + manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),5,7)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),4,5) + manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),4,6) + manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),4,7)));
                 }
                 else if(b.data.w_pawn_4 & ROOK){
                     value += weights[56] * !(under_threat(b,b.data.w_pawn_4,curr_player));
@@ -373,7 +373,7 @@ class function_approximator{
                 if(b.data.b_pawn_1 & PAWN){
                     value += weights[23] * !(under_threat(b,b.data.b_pawn_1,curr_player));
                     value += weights[24];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),2,1) + manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),2,0)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),3,0) + manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),3,1) + manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),3,2)));
                 }
                 else if(b.data.b_pawn_1 & ROOK){
                     value += weights[25] * !(under_threat(b,b.data.b_pawn_1,curr_player));
@@ -389,7 +389,7 @@ class function_approximator{
                 if(b.data.b_pawn_2 & PAWN){
                     value += weights[29] * !(under_threat(b,b.data.b_pawn_2,curr_player));
                     value += weights[30];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),2,1) + manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),2,0)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),3,0) + manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),3,1) + manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),3,2)));
                 }
                 else if(b.data.b_pawn_2 & ROOK){
                     value += weights[31] * !(under_threat(b,b.data.b_pawn_2,curr_player));
@@ -405,7 +405,7 @@ class function_approximator{
                 if(b.data.b_pawn_3 & PAWN){
                     value += weights[48] * !(under_threat(b,b.data.b_pawn_3,curr_player));
                     value += weights[49];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),2,1) + manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),2,0)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),3,0) + manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),3,1) + manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),3,2)));
                 }
                 else if(b.data.b_pawn_3 & ROOK){
                     value += weights[50] * !(under_threat(b,b.data.b_pawn_3,curr_player));
@@ -421,7 +421,7 @@ class function_approximator{
                 if(b.data.b_pawn_4 & PAWN){
                     value += weights[60] * !(under_threat(b,b.data.b_pawn_4,curr_player));
                     value += weights[61];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),2,1) + manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),2,0)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),3,0) + manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),3,1) + manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),3,2)));
                 }
                 else if(b.data.b_pawn_4 & ROOK){
                     value += weights[62] * !(under_threat(b,b.data.b_pawn_4,curr_player));
@@ -472,7 +472,7 @@ class function_approximator{
                 if(b.data.b_pawn_1 & PAWN){
                     value += weights[4] * !(under_threat(b,b.data.b_pawn_1,curr_player));
                     value += weights[5];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),2,1) + manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),2,0)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),3,0) + manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),3,1) + manhattan_distance(getx(b.data.b_pawn_1),gety(b.data.b_pawn_1),3,2)));
                 }
                 else if(b.data.b_pawn_1 & ROOK){
                     value += weights[6] * !(under_threat(b,b.data.b_pawn_1,curr_player));
@@ -488,7 +488,7 @@ class function_approximator{
                 if(b.data.b_pawn_2 & PAWN){
                     value += weights[10] * !(under_threat(b,b.data.b_pawn_2,curr_player));
                     value += weights[11];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),2,1) + manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),2,0)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),3,0) + manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),3,1) + manhattan_distance(getx(b.data.b_pawn_2),gety(b.data.b_pawn_2),3,2)));
                 }
                 else if(b.data.b_pawn_2 & ROOK){
                     value += weights[12] * !(under_threat(b,b.data.b_pawn_2,curr_player));
@@ -504,7 +504,7 @@ class function_approximator{
                 if(b.data.b_pawn_3 & PAWN){
                     value += weights[42] * !(under_threat(b,b.data.b_pawn_3,curr_player));
                     value += weights[43];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),2,1) + manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),2,0)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),3,0) + manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),3,1) + manhattan_distance(getx(b.data.b_pawn_3),gety(b.data.b_pawn_3),3,2)));
                 }
                 else if(b.data.b_pawn_3 & ROOK){
                     value += weights[44] * !(under_threat(b,b.data.b_pawn_3,curr_player));
@@ -520,7 +520,7 @@ class function_approximator{
                 if(b.data.b_pawn_4 & PAWN){
                     value += weights[54] * !(under_threat(b,b.data.b_pawn_4,curr_player));
                     value += weights[55];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),2,1) + manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),2,0)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),3,0) + manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),3,1) + manhattan_distance(getx(b.data.b_pawn_4),gety(b.data.b_pawn_4),3,2)));
                 }
                 else if(b.data.b_pawn_4 & ROOK){
                     value += weights[56] * !(under_threat(b,b.data.b_pawn_4,curr_player));
@@ -566,7 +566,7 @@ class function_approximator{
                 if(b.data.w_pawn_1 & PAWN){
                     value += weights[23] * !(under_threat(b,b.data.w_pawn_1,curr_player));
                     value += weights[24];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,5) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,6)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,5) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,6) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,7)));
                 }
                 else if(b.data.w_pawn_1 & ROOK){
                     value += weights[25] * !(under_threat(b,b.data.w_pawn_1,curr_player));
@@ -582,7 +582,7 @@ class function_approximator{
                 if(b.data.w_pawn_2 & PAWN){
                     value += weights[29] * !(under_threat(b,b.data.w_pawn_2,curr_player));
                     value += weights[30];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,5) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,6)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,5) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,6) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,7)));
                 }
                 else if(b.data.w_pawn_2 & ROOK){
                     value += weights[31] * !(under_threat(b,b.data.w_pawn_2,curr_player));
@@ -598,7 +598,7 @@ class function_approximator{
                 if(b.data.w_pawn_3 & PAWN){
                     value += weights[48] * !(under_threat(b,b.data.w_pawn_3,curr_player));
                     value += weights[49];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),5,6) + manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),5,7)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),4,5) + manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),4,6) + manhattan_distance(getx(b.data.w_pawn_3),gety(b.data.w_pawn_3),4,7)));
                 }
                 else if(b.data.w_pawn_3 & ROOK){
                     value += weights[50] * !(under_threat(b,b.data.w_pawn_3,curr_player));
@@ -614,7 +614,7 @@ class function_approximator{
                 if(b.data.w_pawn_4 & PAWN){
                     value += weights[60] * !(under_threat(b,b.data.w_pawn_4,curr_player));
                     value += weights[61];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),5,6) + manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),5,7)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),4,5) + manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),4,6) + manhattan_distance(getx(b.data.w_pawn_4),gety(b.data.w_pawn_4),4,7)));
                 }
                 else if(b.data.w_pawn_4 & ROOK){
                     value += weights[62] * !(under_threat(b,b.data.w_pawn_4,curr_player));
@@ -1028,7 +1028,7 @@ class function_approximator{
 
             b.flip_player_();
         }
-        write_weights();
+        write_weights(EIGHT_TWO);
     }
 
     double state_evaluation_8_4(Board &b, int state_count = 0){
@@ -1052,7 +1052,7 @@ class function_approximator{
                 if(b.data.w_pawn_1 & PAWN){
                     value += weights[4] * !(under_threat(b,b.data.w_pawn_1,curr_player));
                     value += weights[5];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,5) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,6)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),5,6) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),5,7)));
                 }
                 else if(b.data.w_pawn_1 & ROOK){
                     value += weights[6] * !(under_threat(b,b.data.w_pawn_1,curr_player));
@@ -1068,7 +1068,7 @@ class function_approximator{
                 if(b.data.w_pawn_2 & PAWN){
                     value += weights[10] * !(under_threat(b,b.data.w_pawn_2,curr_player));
                     value += weights[11];
-                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,5) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,6)));
+                    value += (double)(-0.00001 * (manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),5,6) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),5,7)));
                 }
                 else if(b.data.w_pawn_2 & ROOK){
                     value += weights[12] * !(under_threat(b,b.data.w_pawn_2,curr_player));
@@ -1315,7 +1315,7 @@ class function_approximator{
                 if(b.data.w_pawn_1 & PAWN){
                     value += weights[23] * !(under_threat(b,b.data.w_pawn_1,curr_player));
                     value += weights[24];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,5) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),4,6)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),5,6) + manhattan_distance(getx(b.data.w_pawn_1),gety(b.data.w_pawn_1),5,7)));
                 }
                 else if(b.data.w_pawn_1 & ROOK){
                     value += weights[25] * !(under_threat(b,b.data.w_pawn_1,curr_player));
@@ -1331,7 +1331,7 @@ class function_approximator{
                 if(b.data.w_pawn_2 & PAWN){
                     value += weights[29] * !(under_threat(b,b.data.w_pawn_2,curr_player));
                     value += weights[30];
-                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,5) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),4,6)));
+                    value += (double)(0.00001 * (manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),5,6) + manhattan_distance(getx(b.data.w_pawn_2),gety(b.data.w_pawn_2),5,7)));
                 }
                 else if(b.data.w_pawn_2 & ROOK){
                     value += weights[31] * !(under_threat(b,b.data.w_pawn_2,curr_player));
@@ -1741,7 +1741,7 @@ class function_approximator{
 
             b.flip_player_();
         }
-        write_weights();
+        write_weights(EIGHT_FOUR);
     }
 
     double state_evaluation_7_3(Board &b, int state_count = 0){
@@ -2199,7 +2199,7 @@ class function_approximator{
 
             b.flip_player_();
         }
-        write_weights();
+        write_weights(SEVEN_THREE);
     }
 
 
@@ -2317,8 +2317,20 @@ class function_approximator{
         return (x1-x2) * (x1-x2) + (y1-y2) * (y1-y2);
     }
 
-    void write_weights(){
-        std::ofstream output_file("src/weights.txt");
+    void write_weights(BoardType board_type){
+
+        std::string output_file_name;
+        if(board_type == SEVEN_THREE){
+            output_file_name = "src/weights_7_3.txt";
+        }
+        else if(board_type == EIGHT_TWO){
+            output_file_name = "src/weights_8_2.txt";
+        }
+        else{
+            output_file_name = "src/weights_8_4.txt";
+        }
+
+        std::ofstream output_file(output_file_name);
 
         output_file<< std::hexfloat;
 
@@ -2331,8 +2343,20 @@ class function_approximator{
         output_file.close();
     }
 
-    void read_weights(){
-        std::ifstream input_file("src/weights.txt");
+    void read_weights(BoardType board_type){
+
+        std::string input_file_name;
+        if(board_type == SEVEN_THREE){
+            input_file_name = "src/weights_7_3.txt";
+        }
+        else if(board_type == EIGHT_TWO){
+            input_file_name = "src/weights_8_2.txt";
+        }
+        else{
+            input_file_name = "src/weights_8_4.txt";
+        }
+
+        std::ifstream input_file(input_file_name);
         std::string line;
 
         for(auto &it : weights){
@@ -2351,9 +2375,9 @@ class function_approximator{
 
 class QLearningAgent {
 public:
-    QLearningAgent(bool pretrained = false)
-        : fn(pretrained) {
-            learningRate = 0.0001;
+    QLearningAgent(bool pretrained = false, BoardType board_type = SEVEN_THREE)
+        : fn(pretrained,board_type) {
+            learningRate = 0.001;
             discountFactor = 0.9;
             trainstep = 1;
 

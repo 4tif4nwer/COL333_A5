@@ -10,7 +10,9 @@ using namespace std;
 const double MIN = -1000;
 const double MAX = 1000;
 
-QLearningAgent Qlearn(true);
+BoardType btype = EIGHT_TWO;
+
+QLearningAgent Qlearn(true,btype);
 int16_t maxDepth=3;
 
 
@@ -145,7 +147,7 @@ std::pair<double,U16> minimax(Board &b,int16_t depth,
 
 int main(){
 
-    Board test(SEVEN_THREE);
+    Board test(btype);
     auto pure_board = all_boards_to_str(test);
     // std::cout<<pure_board<<"\n";
     std::cout<<"Training\n";
@@ -166,7 +168,7 @@ int main(){
 
     for(int games = 1; games <= 1000000 ; ++games){
         std::cout<<"Game : "<<games<<"\n";
-        Board b = Board(SEVEN_THREE);
+        Board b = Board(btype);
         // if(all_boards_to_str(b)!= pure_board){
         //     std::cout<<all_boards_to_str(b)<<"\n"<<pure_board<<"\n";
         // }
@@ -210,7 +212,7 @@ int main(){
             // sample an integer from 1 to 100
             int r = rand() % 100;
             auto move = *moveset.begin();
-            if(r<20){
+            if(r<30){
                 std::vector<U16> moves;
                 std::sample(
                     moveset.begin(),
