@@ -1,7 +1,13 @@
-#include "engine.hpp"
+#include <algorithm>
+#include <random>
+#include <iostream>
+#include <thread>
+
 #include <map>
 #include<unordered_set>
 #include <float.h>
+
+#include "engine.hpp"
 #include "board.hpp"
 #include "butils.hpp"
 
@@ -2365,7 +2371,7 @@ private:
 QLearningAgent Qlearn;
 std::map<std::string,int> board_count;
 
-int16_t maxDepth=3;
+int16_t maxDepth=4;
 
 
 std::pair<double,U16> minimax(Board &b,int16_t depth,
