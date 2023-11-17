@@ -19,7 +19,7 @@ rollerball_a2:
 
 trainer:
 	mkdir -p bin
-	$(CC) $(CFLAGS) $(INCLUDES) src/board.cpp src/butils.cpp src/bdata.cpp src/trainer.cpp -lpthread -o bin/sim
+	$(CC) $(CFLAGS) $(INCLUDES) src/board.cpp src/butils.cpp src/bdata.cpp src/trainer.cpp -lpthread -o bin/sim_8_2
 
 package:
 	mkdir -p build 

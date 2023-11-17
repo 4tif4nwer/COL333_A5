@@ -148,6 +148,7 @@ std::pair<double,U16> minimax(Board &b,int16_t depth,
 int main(){
 
     Board test(btype);
+
     auto pure_board = all_boards_to_str(test);
     // std::cout<<pure_board<<"\n";
     std::cout<<"Training\n";

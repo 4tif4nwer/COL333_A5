@@ -232,13 +232,10 @@ class function_approximator{
             weights.resize(42,0);
         }
         else if(board_type == EIGHT_FOUR){
-            //something
             weights.resize(66,0);
         }        
         else{
-            //something
             weights.resize(74,0);
-
         }
 
         bias.resize(1,0);
@@ -272,8 +269,8 @@ class function_approximator{
             value += weights[1] * under_threat(b,b.data.w_rook_1,curr_player);
             value += weights[2] * under_threat(b,b.data.w_rook_2,curr_player);
             value += weights[3] * under_threat(b,b.data.w_bishop,curr_player);
-            value += weights[66] * under_threat(b,b.data.b_knight_1,curr_player);
-            value += weights[67] * under_threat(b,b.data.b_knight_2,curr_player);
+            value += weights[66] * under_threat(b,b.data.w_knight_1,curr_player);
+            value += weights[67] * under_threat(b,b.data.w_knight_2,curr_player);
 
             if(b.data.w_pawn_1 != DEAD){
                 if(b.data.w_pawn_1 & PAWN){
@@ -348,10 +345,10 @@ class function_approximator{
             if(is_dead(b.data.w_bishop)){
                 value += weights[18];
             }
-            if(is_dead(b.data.b_knight_1)){
+            if(is_dead(b.data.w_knight_1)){
                 value += weights[68];
             }
-            if(is_dead(b.data.b_knight_2)){
+            if(is_dead(b.data.w_knight_2)){
                 value += weights[69];
             }
 
@@ -366,8 +363,8 @@ class function_approximator{
             value += weights[20] * under_threat(b,b.data.b_rook_1,curr_player);
             value += weights[21] * under_threat(b,b.data.b_rook_2,curr_player);
             value += weights[22] * under_threat(b,b.data.b_bishop,curr_player);
-            value += weights[70] * under_threat(b,b.data.w_knight_1,curr_player);
-            value += weights[71] * under_threat(b,b.data.w_knight_2,curr_player);
+            value += weights[70] * under_threat(b,b.data.b_knight_1,curr_player);
+            value += weights[71] * under_threat(b,b.data.b_knight_2,curr_player);
 
             if(b.data.b_pawn_1 != DEAD){
                 if(b.data.b_pawn_1 & PAWN){
@@ -442,10 +439,10 @@ class function_approximator{
             if(is_dead(b.data.b_bishop)){
                 value += weights[37];
             }
-            if(is_dead(b.data.w_knight_1)){
+            if(is_dead(b.data.b_knight_1)){
                 value += weights[72];
             }
-            if(is_dead(b.data.w_knight_2)){
+            if(is_dead(b.data.b_knight_2)){
                 value += weights[73];
             }
 
@@ -465,8 +462,8 @@ class function_approximator{
             value += weights[1] * under_threat(b,b.data.b_rook_1,curr_player);
             value += weights[2] * under_threat(b,b.data.b_rook_2,curr_player);
             value += weights[3] * under_threat(b,b.data.b_bishop,curr_player);
-            value += weights[66] * under_threat(b,b.data.w_knight_1,curr_player);
-            value += weights[67] * under_threat(b,b.data.w_knight_2,curr_player);
+            value += weights[66] * under_threat(b,b.data.b_knight_1,curr_player);
+            value += weights[67] * under_threat(b,b.data.b_knight_2,curr_player);
 
             if(b.data.b_pawn_1 != DEAD){
                 if(b.data.b_pawn_1 & PAWN){
@@ -541,10 +538,10 @@ class function_approximator{
             if(is_dead(b.data.b_bishop)){
                 value += weights[18];
             }
-            if(is_dead(b.data.w_knight_1)){
+            if(is_dead(b.data.b_knight_1)){
                 value += weights[68];
             }
-            if(is_dead(b.data.w_knight_2)){
+            if(is_dead(b.data.b_knight_2)){
                 value += weights[69];
             }
 
@@ -559,8 +556,8 @@ class function_approximator{
             value += weights[20] * under_threat(b,b.data.w_rook_1,curr_player);
             value += weights[21] * under_threat(b,b.data.w_rook_2,curr_player);
             value += weights[22] * under_threat(b,b.data.w_bishop,curr_player);
-            value += weights[70] * under_threat(b,b.data.b_knight_1,curr_player);
-            value += weights[71] * under_threat(b,b.data.b_knight_2,curr_player);
+            value += weights[70] * under_threat(b,b.data.w_knight_1,curr_player);
+            value += weights[71] * under_threat(b,b.data.w_knight_2,curr_player);
 
             if(b.data.w_pawn_1 != DEAD){
                 if(b.data.w_pawn_1 & PAWN){
@@ -635,10 +632,10 @@ class function_approximator{
             if(is_dead(b.data.w_bishop)){
                 value += weights[37];
             }
-            if(is_dead(b.data.b_knight_1)){
+            if(is_dead(b.data.w_knight_1)){
                 value += weights[72];
             }
-            if(is_dead(b.data.b_knight_2)){
+            if(is_dead(b.data.w_knight_2)){
                 value += weights[73];
             }
 
@@ -671,8 +668,8 @@ class function_approximator{
             weights[1] += learning_rate * error * under_threat(b,b.data.w_rook_1,curr_player);
             weights[2] += learning_rate * error * under_threat(b,b.data.w_rook_2,curr_player);
             weights[3] += learning_rate * error * under_threat(b,b.data.w_bishop,curr_player);
-            weights[66] += learning_rate * error * under_threat(b,b.data.b_knight_1,curr_player);
-            weights[67] += learning_rate * error * under_threat(b,b.data.b_knight_2,curr_player);
+            weights[66] += learning_rate * error * under_threat(b,b.data.w_knight_1,curr_player);
+            weights[67] += learning_rate * error * under_threat(b,b.data.w_knight_2,curr_player);
 
             if(b.data.w_pawn_1 != DEAD){
                 if(b.data.w_pawn_1 & PAWN){
@@ -743,10 +740,10 @@ class function_approximator{
             if(is_dead(b.data.w_bishop)){
                 weights[18] += learning_rate * error;
             }
-            if(is_dead(b.data.b_knight_1)){
+            if(is_dead(b.data.w_knight_1)){
                 weights[68] += learning_rate * error;
             }
-            if(is_dead(b.data.b_knight_2)){
+            if(is_dead(b.data.w_knight_2)){
                 weights[69] += learning_rate * error;
             }
             weights[38] += learning_rate * (double)(error * int(b.get_legal_moves().size()));
@@ -760,8 +757,8 @@ class function_approximator{
             weights[20] += learning_rate * error * under_threat(b,b.data.b_rook_1,curr_player);
             weights[21] += learning_rate * error * under_threat(b,b.data.b_rook_2,curr_player);
             weights[22] += learning_rate * error * under_threat(b,b.data.b_bishop,curr_player);
-            weights[70] += learning_rate * error * under_threat(b,b.data.w_knight_1,curr_player);
-            weights[71] += learning_rate * error * under_threat(b,b.data.w_knight_2,curr_player);
+            weights[70] += learning_rate * error * under_threat(b,b.data.b_knight_1,curr_player);
+            weights[71] += learning_rate * error * under_threat(b,b.data.b_knight_2,curr_player);
 
             if(b.data.b_pawn_1 != DEAD){
                 if(b.data.b_pawn_1 & PAWN){
@@ -832,10 +829,10 @@ class function_approximator{
             if(is_dead(b.data.b_bishop)){
                 weights[37] += learning_rate * error;
             }
-            if(is_dead(b.data.w_knight_1)){
+            if(is_dead(b.data.b_knight_1)){
                 weights[72] += learning_rate * error;
             }
-            if(is_dead(b.data.w_knight_2)){
+            if(is_dead(b.data.b_knight_2)){
                 weights[73] += learning_rate * error;
             }
             
@@ -854,8 +851,8 @@ class function_approximator{
             weights[1] += learning_rate * error * under_threat(b,b.data.b_rook_1,curr_player);
             weights[2] += learning_rate * error * under_threat(b,b.data.b_rook_2,curr_player);
             weights[3] += learning_rate * error * under_threat(b,b.data.b_bishop,curr_player);
-            weights[66] += learning_rate * error * under_threat(b,b.data.w_knight_1,curr_player);
-            weights[67] += learning_rate * error * under_threat(b,b.data.w_knight_2,curr_player);
+            weights[66] += learning_rate * error * under_threat(b,b.data.b_knight_1,curr_player);
+            weights[67] += learning_rate * error * under_threat(b,b.data.b_knight_2,curr_player);
 
             if(b.data.b_pawn_1 != DEAD){
                 if(b.data.b_pawn_1 & PAWN){
@@ -903,7 +900,7 @@ class function_approximator{
             }
 
             if(b.data.b_pawn_4 != DEAD){
-                if(b.data.b_pawn_2 & PAWN){
+                if(b.data.b_pawn_4 & PAWN){
                     weights[54] += learning_rate * error * !(under_threat(b,b.data.b_pawn_4,curr_player));
                     weights[55] += learning_rate * error;
                 }
@@ -926,10 +923,10 @@ class function_approximator{
             if(is_dead(b.data.b_bishop)){
                 weights[18] += learning_rate * error;
             }
-            if(is_dead(b.data.w_knight_1)){
+            if(is_dead(b.data.b_knight_1)){
                 weights[68] += learning_rate * error;
             }
-            if(is_dead(b.data.w_knight_2)){
+            if(is_dead(b.data.b_knight_2)){
                 weights[69] += learning_rate * error;
             }
             weights[38] += learning_rate * (double)(error * int(b.get_legal_moves().size()));
@@ -943,8 +940,8 @@ class function_approximator{
             weights[20] += learning_rate * error * under_threat(b,b.data.w_rook_1,curr_player);
             weights[21] += learning_rate * error * under_threat(b,b.data.w_rook_2,curr_player);
             weights[22] += learning_rate * error * under_threat(b,b.data.w_bishop,curr_player);
-            weights[70] += learning_rate * error * under_threat(b,b.data.b_knight_1,curr_player);
-            weights[71] += learning_rate * error * under_threat(b,b.data.b_knight_2,curr_player);
+            weights[70] += learning_rate * error * under_threat(b,b.data.w_knight_1,curr_player);
+            weights[71] += learning_rate * error * under_threat(b,b.data.w_knight_2,curr_player);
 
             if(b.data.w_pawn_1 != DEAD){
                 if(b.data.w_pawn_1 & PAWN){
@@ -1015,10 +1012,10 @@ class function_approximator{
             if(is_dead(b.data.w_bishop)){
                 weights[37] += learning_rate * error;
             }
-            if(is_dead(b.data.b_knight_1)){
+            if(is_dead(b.data.w_knight_1)){
                 weights[72] += learning_rate * error;
             }
-            if(is_dead(b.data.b_knight_2)){
+            if(is_dead(b.data.w_knight_2)){
                 weights[73] += learning_rate * error;
             }
 
@@ -1629,7 +1626,7 @@ class function_approximator{
             }
 
             if(b.data.b_pawn_4 != DEAD){
-                if(b.data.b_pawn_2 & PAWN){
+                if(b.data.b_pawn_4 & PAWN){
                     weights[54] += learning_rate * error * !(under_threat(b,b.data.b_pawn_4,curr_player));
                     weights[55] += learning_rate * error;
                 }
@@ -2389,7 +2386,7 @@ public:
         double score;
         if(b.data.board_type == SEVEN_THREE)
             score = fn.state_evaluation_7_3(b,board_count[board_encode(b)]);
-        else if(b.data.board_type == EIGHT_TWO)
+        else if(b.data.board_type == EIGHT_FOUR)
             score = fn.state_evaluation_8_4(b,board_count[board_encode(b)]);
         else
             score = fn.state_evaluation_8_2(b,board_count[board_encode(b)]);
