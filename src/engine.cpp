@@ -11,6 +11,10 @@
 #include "board.hpp"
 #include "butils.hpp"
 
+int num_last_more_than_ten = 0;
+int maximum_depth = 4;
+int minimum_depth = 3;
+
 std::string board_encode(const Board& b){
     std::string perspective = "";
     perspective += std::to_string(getx(b.data.w_king));
@@ -2474,6 +2478,8 @@ std::pair<double,U16> minimax(Board &b,int16_t depth,
 
 void Engine::find_best_move(const Board& b) {
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     if(!Qlearn.board_type_set){
         Qlearn = QLearningAgent(b.data.board_type);
     }
@@ -2500,6 +2506,21 @@ void Engine::find_best_move(const Board& b) {
             board_count[board_encode(search_board)]++;
         }
     }
+    auto stop = std::chrono::high_resolution_clock::now();
+    float time_in_sec= std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() / 1000.0;
+    if(time_in_sec>=5)
+        num_last_more_than_ten++;
+    else
+        num_last_more_than_ten=0;
+    if(num_last_more_than_ten>=2)
+        maxDepth=std::max(maxDepth-1,minimum_depth);
+    else
+        maxDepth=std::min(maxDepth+1,maximum_depth);
+
+
+    std::cout<<"================================="<<std::endl;
+    std::cout<<"maxDepth: "<<maxDepth<<std::endl;
+
     // std::this_thread::sleep_for(std::chrono::milliseconds(500));
     return;
 }
